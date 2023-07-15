@@ -1,12 +1,8 @@
-import nltk
 import praw
-import pandas as pd
 import os
 import sys
 import time
-import string
 import threading
-from collections import Counter
 
 def loading_animation():
     cursor_anim = '|/-\\'
