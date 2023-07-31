@@ -80,7 +80,12 @@ def binary_encode(message):
     
     # locate the index of a given word, and add it to the scheme
     for token in tokens:    
-        binary_encode += str(df.loc[df['word'] == token, 'key'].iloc[0])
+        key = df.loc[df['word'] == token, 'key']
+        if not key.empty:
+            binary_encode += str(key.iloc[0])
+        else:
+            print(f"Warning: Token '{token}' not found in dataframe.")
+
 
     return binary_encode
 
