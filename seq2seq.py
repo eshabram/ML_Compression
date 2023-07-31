@@ -43,8 +43,6 @@ with open('data.txt', 'r') as f:
     animation_thread = threading.Thread(target=loading_animation)
     animation_thread.start()
 #%%
-
-
 # Filter out punctuation
 tokens = [token for token in tokens if token not in string.punctuation]
 
@@ -72,9 +70,6 @@ df = df.sort_values(by='score', ascending=False)
 # Assign codes
 ascii_chars = list(string.printable)
 df['code'] = [ascii_chars[i] if i < len(ascii_chars) else word for i, word in enumerate(df['word'])]
-
-# Print the DataFrame
-print(df)
 
 
 #%%

@@ -3,6 +3,7 @@ import os
 import sys
 import time
 import threading
+import pdb
 
 def loading_animation():
     cursor_anim = '|/-\\'
@@ -15,11 +16,11 @@ def loading_animation():
         time.sleep(0.1)
         i += 1
 
-
 reddit = praw.Reddit(client_id='uHEfoWv1Jp1dCT3Ff2gF4A', \
                                client_secret='hD6U0U74B9iuSpFbp_dNqHFVhXVFhQ', \
                                 user_agent='ML_compression_v1', check_for_async=False)
 
+#%%
 total_size = 0
 count = 0
 file_path = 'reddit_data.txt'
@@ -32,12 +33,23 @@ if os.path.exists(file_path):
     print(f'{file_path} already exists. Deleting existing file...')
     os.remove(file_path)
 
+#%%
 # find top 20 subreddits
 pop = reddit.subreddits.popular(limit=10000)
+
+# Start the animation thread
+animation_event = threading.Event()
+animation_thread = threading.Thread(target=loading_animation)
+animation_thread.start()
+    
 for sub in pop:
     pop_list.append(sub.display_name)
+print(len(pop_list))
+animation_event.set()
+animation_thread.join()
     
-
+#%%
+# begin scrape
 while True:
     if count >= len(pop_list):
         print("We're gunna need a bigger list...")
