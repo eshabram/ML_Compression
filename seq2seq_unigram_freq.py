@@ -15,6 +15,7 @@ import threading
 import time
 nltk.download('punkt')
 from collections import Counter
+from nltk.tokenize import word_tokenize
 
 # data retreived from https://www.kaggle.com/datasets/rtatman/english-word-frequency?resource=download
 df = pd.read_csv('unigram_freq.csv')
@@ -52,16 +53,7 @@ def encode_number(num, bits, bit_code):
     # Add the prefix to the beginning and then append the binary number
     encoded = prefix + bin_num
 
-    return encoded
-
-
-def assign_keys(bits, bit_code):
-    # assign key values with custom scheme, based on the index of a word.
-    # Index = rank. Keys are shorter for more common words.
-    animation_thread.start()
-    df['key'] = df.index.map(lambda x: encode_number(x, bits, bit_code))
-    animation_event.set()
-    animation_thread.join()
+    return encoded 
 
 
 def binary_encode(message):
@@ -72,10 +64,12 @@ def binary_encode(message):
     # are two bytes to be read in. Once those bytes have been read, the next code
     # is given, and the process repeats. 
     
+    # tokenize words and punctuation
     tokens = nltk.word_tokenize(message.lower())
-    
+    print(tokens)
     # Filter out punctuation
-    tokens = [token for token in tokens if token not in string.punctuation]
+    #tokens = [token for token in tokens if token not in string.punctuation]
+    
     binary_encode = ''
     
     # locate the index of a given word, and add it to the scheme
@@ -92,7 +86,7 @@ def binary_encode(message):
 
 def decode_sequence(sequence):
     # This is the main function used for decoding. 
-    bit_code_to_bytes = {'00': 1, '01': 2, '10': 3, '11': 4}
+    bit_code_to_bytes = {'00': 1, '01': 2, '10': 3, '11': 1}
     idx = 0
     indices = []
 
@@ -111,9 +105,19 @@ def decode_sequence(sequence):
                 break
             num_str += sequence[idx:idx+8]
             idx += 8
+            
         if num_str:
-            indices.append(int(num_str, 2))
+            if bit_code == '11':
+                # Subtract the integer value of the byte from the length of df
+                index_value = len(df) - int(num_str, 2) -1
+                indices.append(index_value)
+            else:
+                indices.append(int(num_str, 2))
+    
+    # for debugging
     print(indices) 
+    
+    
     # rebuild string (simple version)
     message = ''
     for idx in indices:
@@ -131,10 +135,29 @@ def get_word(idx):
 
     
 #%%
-assign_keys(bits, bit_code)
+# assign key values with custom scheme, based on the index of a word.
+# Index = rank. Keys are shorter for more common words.
+animation_thread.start()
+df['key'] = df.index.map(lambda x: encode_number(x, bits, bit_code))
+# ASCII codes from 32 to 126
+ascii_codes = list(range(32, 127))
+ascii_chars = [chr(code) for code in ascii_codes]
+
+# Generate keys for each ASCII character
+keys = [f'11{format(i, "08b")}' for i in range(len(ascii_chars))][::-1]
+animation_event.set()
+animation_thread.join()
+
+# Create a new dataframe with ASCII characters and their keys
+ascii_df = pd.DataFrame({
+    'word': ascii_chars,
+    'key': keys
+})
+
+# Append the new dataframe to the original one
+df = pd.concat([df, ascii_df], ignore_index=True)   
 #message = "I like to eat chicken!"
 #print(binary_encode(message))
 #print(len(message))
-
 
     
