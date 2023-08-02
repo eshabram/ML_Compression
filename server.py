@@ -1,6 +1,6 @@
 import socket
 import argparse
-from seq2seq_unigram_freq import decode_sequence
+from seq2seq_unigram_freq import decode_sequence_simple, decode_sequence
 
 HOST = 'localhost'  # Replace with the server's IP address
 PORT = 12345        # Replace with the desired port number
@@ -20,7 +20,11 @@ def run_server(args):
                     if args.verbose:
                         print("Received binary string:", binary_string)
                     if binary_string:
-                        result = decode_sequence(binary_string, args)
+                        if args.simple:
+                            result = decode_sequence_simple(binary_string, args)
+                        else:
+                            result = decode_sequence(binary_string, args)
+
                         print(f'Recv From {client_ip}:\n--> "{result}"')
                     else:
                         print("Received an empty binary string.") 
@@ -32,6 +36,8 @@ def run_server(args):
 if __name__ == "__main__":
     # parse arguments
     parser = argparse.ArgumentParser(description="")
+    parser.add_argument("-s", "--simple", \
+                        action="store_true", help="Enable simple mode.")
     parser.add_argument("-v", "--verbose", \
                         action="store_true", help="Enable verbose mode.")
     args = parser.parse_args()

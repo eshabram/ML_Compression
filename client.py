@@ -1,6 +1,6 @@
 import socket
 import argparse
-from seq2seq_unigram_freq import binary_encode
+from seq2seq_unigram_freq import binary_encode_simple, binary_encode
 
 def run_client(args):
     while True:
@@ -13,7 +13,10 @@ def run_client(args):
             
             # get message and encode
             message = input('\nEnter message: ')
-            binary_string = binary_encode(message, args)
+            if args.simple:
+                binary_string = binary_encode_simple(message, args)
+            else:
+                binary_string = binary_encode(message, args)
             if args.verbose:
                 print(f'String: {binary_string}')
             

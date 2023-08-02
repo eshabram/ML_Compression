@@ -16,6 +16,7 @@ import time
 nltk.download('punkt')
 from collections import Counter
 from nltk.tokenize import word_tokenize
+import pdb
 
 # data retreived from https://www.kaggle.com/datasets/rtatman/english-word-frequency?resource=download
 df = pd.read_csv('unigram_freq.csv')
@@ -64,6 +65,54 @@ def binary_encode(message, args):
     # are two bytes to be read in. Once those bytes have been read, the next code
     # is given, and the process repeats. 
     
+    tokens = nltk.word_tokenize(message)
+    
+    processed_tokens = []
+    
+    last_end = 0  # this will keep track of where the last token ended
+    
+    for token in tokens:
+        start = message.find(token, last_end)  # look for token occurrence after the last token
+        if start > 0 and message[start - 1] != ' ' and token in string.punctuation:
+            processed_tokens.append(token)
+        else:
+            processed_tokens.append(' ' + token)
+        last_end = start + len(token)  # update the last token's end
+
+    print(processed_tokens)
+    if args.verbose:
+        print(tokens)
+    
+    binary_encode = ''
+    append_bits = ''
+    pdb.set_trace() 
+    # locate the index of a given word, and add it to the scheme
+    for token in tokens:    
+        key = df.loc[df['word'] == token, 'key']
+        # append bits for token attributes
+        if not key.empty:
+#            if token.istitle():
+#                append_bits += '101'
+#            if token:
+#                append_bits += '110'
+#            if token.isdigit():
+#                append_bits += '111'
+            
+            append_bits += '0'
+#            if token.isdigit():
+#                return
+            binary_encode += (append_bits + str(key.iloc[0]))
+        else:
+            print(f"Warning: Token '{token}' not found in dataframe.")
+            
+    return binary_encode
+
+
+def binary_encode_simple(message, args):
+    # This function is the simple/light-weight version of the encoding scheme.
+    #this version retains as much meaning as possible while keeping the 
+    # compression down between 30% and 40%. I doesn't handle numbers well.
+    
     # tokenize words and punctuation
     tokens = nltk.word_tokenize(message.lower())
     if args.verbose:
@@ -87,6 +136,51 @@ def binary_encode(message, args):
 
 def decode_sequence(sequence, args):
     # This is the main function used for decoding. 
+    bit_code_to_bytes = {'00': 1, '01': 2, '10': 3, '11': 1}
+    idx = 0
+    indices = []
+
+    while idx < len(sequence):
+        # Extract the bit code
+        bit_code = sequence[idx:idx+2]
+        idx += 2
+
+        # Determine the number of bytes to read based on the bit code
+        num_bytes = bit_code_to_bytes[bit_code]
+
+        # Read the number and convert to integer
+        num_str = ''
+        for _ in range(num_bytes):
+            if len(sequence) - idx < 8:
+                break
+            num_str += sequence[idx:idx+8]
+            idx += 8
+            
+        if num_str:
+            if bit_code == '11':
+                # Subtract the integer value of the byte from the length of df
+                index_value = len(df) - int(num_str, 2) -1
+                indices.append(index_value)
+            else:
+                indices.append(int(num_str, 2))
+    
+    if args.verbose:
+        print(indices) 
+    
+    
+    # rebuild string (simple version)
+    message = ''
+    for idx in indices:
+        if len(message) == 0:
+            message += get_word(idx)
+        else:
+            message += ' ' + get_word (idx)
+            
+    return message
+
+
+def decode_sequence_simple(sequence, args):
+    # This is the simple version of the main function used for decoding. 
     bit_code_to_bytes = {'00': 1, '01': 2, '10': 3, '11': 1}
     idx = 0
     indices = []
@@ -163,8 +257,8 @@ df = pd.concat([df, ascii_df], ignore_index=True)
 
 
 """ 
-00 = word (if not first, space before)
-01 = capital word(if not first, space before)
+00 = 
+01 = capital word
 10 = no space before
 11 = number (when read in, slpit larger numbers and send as multi number bytes.
              we can give 8 bits for each number, and split numbers bigger than 
@@ -172,16 +266,16 @@ df = pd.concat([df, ascii_df], ignore_index=True)
    
 11 1 10 0 00 00000001 -> (using this translation key with middle indicator bits,
                           would represent the number 1 with no space in front. 
-                          This would work nice ifnumber were more commonly used 
+                          This would work nice if number were more commonly used 
                           1-9 only, but with this scheme we can get much larger 
                           numbers up over 4 billion, but the real cool thing 
-                          about it would be thatif you used commas, the they 
+                          about it would be that if you used commas, then they 
                           wouldn't have to be that big.)
    
 or
 
-1 01 0 00 00000001 -> (this would be a capital word.)
-0 00 00000001 -> (and this would be a lowercase, and we could reuse the other 00 
+1 01 0 0000000001 -> (this would be a capital word.)
+0 0000000001 -> (and this would be a lowercase, and we could reuse the other 00 
                   somewhere else. This would be efficient because capital words
                   are much less common, and the overhead is only 3 more bits to
                   achieve a capital word. It does however mean that each word 
