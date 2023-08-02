@@ -56,7 +56,7 @@ def encode_number(num, bits, bit_code):
     return encoded 
 
 
-def binary_encode(message):
+def binary_encode(message, args):
     # This function does the encoding of messages in our custom binary format.
     # the format is read from left to right, where the first two bits are one of
     # four combinations indicating whether there are more bytes to be read after 
@@ -66,7 +66,8 @@ def binary_encode(message):
     
     # tokenize words and punctuation
     tokens = nltk.word_tokenize(message.lower())
-    print(tokens)
+    if args.verbose:
+        print(tokens)
     # Filter out punctuation
     #tokens = [token for token in tokens if token not in string.punctuation]
     
@@ -84,7 +85,7 @@ def binary_encode(message):
     return binary_encode
 
 
-def decode_sequence(sequence):
+def decode_sequence(sequence, args):
     # This is the main function used for decoding. 
     bit_code_to_bytes = {'00': 1, '01': 2, '10': 3, '11': 1}
     idx = 0
@@ -114,8 +115,8 @@ def decode_sequence(sequence):
             else:
                 indices.append(int(num_str, 2))
     
-    # for debugging
-    print(indices) 
+    if args.verbose:
+        print(indices) 
     
     
     # rebuild string (simple version)
@@ -160,4 +161,39 @@ df = pd.concat([df, ascii_df], ignore_index=True)
 #print(binary_encode(message))
 #print(len(message))
 
-    
+
+""" 
+00 = word (if not first, space before)
+01 = capital word(if not first, space before)
+10 = no space before
+11 = number (when read in, slpit larger numbers and send as multi number bytes.
+             we can give 8 bits for each number, and split numbers bigger than 
+             that to fit a byte by byte scheme)
+   
+11 1 10 0 00 00000001 -> (using this translation key with middle indicator bits,
+                          would represent the number 1 with no space in front. 
+                          This would work nice ifnumber were more commonly used 
+                          1-9 only, but with this scheme we can get much larger 
+                          numbers up over 4 billion, but the real cool thing 
+                          about it would be thatif you used commas, the they 
+                          wouldn't have to be that big.)
+   
+or
+
+1 01 0 00 00000001 -> (this would be a capital word.)
+0 00 00000001 -> (and this would be a lowercase, and we could reuse the other 00 
+                  somewhere else. This would be efficient because capital words
+                  are much less common, and the overhead is only 3 more bits to
+                  achieve a capital word. It does however mean that each word 
+                  will be 1 bit longer, making longer messages a bit larger.)
+   
+000 = word
+001 = cap word
+010 = word no space before
+011 = cap word no space before
+100 = number
+101 = number no space before
+110 =
+111 = 
+ 
+"""
