@@ -6,18 +6,18 @@ should be good to begin.
 Open two linux termial and run client.py and server.py on the other like this:
 
 ```
-python3 client.py -sv
+python3 client.py -v
 ```
 
 and from the other shell
 
 ```
-python3 server.py -sv
+python3 server.py -v
 
 ```
 
-The -sv arguments stand for --simple and --verbose. You can leave out verbose, but you MUST HAVE SIMPLE MODE 
-ENABLED ON BOTH!!
+The -v is for verbose mode, which gives more information. There is a --advanced mode that
+I am currently working on and is not in a functional state, so don't enable it.
 
 That's it. If you'd like to verify that the data is the size specified, you can run wireshark and capture one 
 the TCP packets and find the "payload" or "data". Have fun!
