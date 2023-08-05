@@ -6,15 +6,8 @@ import sys
 import time
 import string
 import threading
-import torch
-import torch.nn as nn
-import torch.optim as optim
-import numpy as np
 import nltk
-import threading
-import time
 nltk.download('punkt')
-from collections import Counter
 from nltk.tokenize import word_tokenize
 import pdb
 

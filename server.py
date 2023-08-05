@@ -1,6 +1,6 @@
 import socket
 import argparse
-from seq2seq_unigram_freq import decode_sequence_simple, decode_sequence
+from seq2seq_unigram import decode_sequence_simple, decode_sequence
 
 HOST = 'localhost'  # Replace with the server's IP address
 PORT = 12345        # Replace with the desired port number
@@ -26,7 +26,7 @@ def run_server(args):
                         else:
                             result = decode_sequence(binary_string, args)
 
-                        print(f'Recv From {client_ip}:\n--> "{result}"')
+                        print(f'Recv From {client_ip}:\n--> "\033[32m{result}\033[0m"')
                     else:
                         print("Received an empty binary string.") 
         except KeyboardInterrupt:

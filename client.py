@@ -1,6 +1,6 @@
 import socket
 import argparse
-from seq2seq_unigram_freq import binary_encode_simple, binary_encode
+from seq2seq_unigram import binary_encode_simple, binary_encode
 
 def run_client(args):
     print('\n')
