@@ -20,5 +20,5 @@ The -sv arguments stand for --simple and --verbose. You can leave out verbose, b
 ENABLED ON BOTH!!
 
 That's it. If you'd like to verify that the data is the size specified, you can run wireshark and capture one 
-the TCP packets and find the "payload" or "data". Have fun.
+the TCP packets and find the "payload" or "data". Have fun!
 ![Alt text](figures/wireshark_payload.png)
