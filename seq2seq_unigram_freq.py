@@ -275,26 +275,10 @@ def get_word(idx):
 # Index = rank. Keys are shorter for more common words.
 animation_thread.start()
 df['key'] = df.index.map(lambda x: encode_number(x, bits, bit_code))
-# ASCII codes from 32 to 126
-ascii_codes = list(range(32, 127))
-ascii_chars = [chr(code) for code in ascii_codes]
 
-# Generate keys for each ASCII character
-keys = [f'11{format(i, "08b")}' for i in range(len(ascii_chars))][::-1]
 animation_event.set()
 animation_thread.join()
 
-# Create a new dataframe with ASCII characters and their keys
-ascii_df = pd.DataFrame({
-    'word': ascii_chars,
-    'key': keys
-})
-
-# Append the new dataframe to the original one
-df = pd.concat([df, ascii_df], ignore_index=True)   
-#message = "I like to eat chicken!"
-#print(binary_encode(message))
-#print(len(message))
 
 
 """ 
