@@ -50,7 +50,7 @@ def encode_number(num, bits, bit_code):
     return encoded 
 
 
-def binary_encode(message, args):
+def binary_encode_advanced(message, args):
     # This function does the encoding of messages in our custom binary format.
     # the format is read from left to right, where the first two bits are one of
     # four combinations indicating whether there are more bytes to be read after 
@@ -103,7 +103,7 @@ def binary_encode(message, args):
     return binary_encode
 
 
-def decode_sequence(sequence, args):
+def decode_sequence_advanced(sequence, args):
     bit_code_to_bytes = {'00': 1, '01': 2, '10': 3, '11': 1}
     idx = 0
     words = []
@@ -175,7 +175,7 @@ def decode_sequence(sequence, args):
     return message
 
 
-def binary_encode_simple(message, args):
+def binary_encode(message, args):
     # This function is the simple/light-weight version of the encoding scheme.
     # this version retains as much meaning as possible while keeping the 
     # compression down between 30% and 40%. It doesn't handle numbers well.
@@ -191,7 +191,11 @@ def binary_encode_simple(message, args):
     
     # locate the index of a given word, and add it to the scheme
     for token in tokens:    
-        key = df.loc[df['word'] == token, 'key']
+        if len(token) > 1:
+            key = df.loc[df['word'] == token, 'key']
+        else:
+            key = pd.Series()
+        #pdb.set_trace()
         if not key.empty:
             binary_encode += '1' + str(key.iloc[0])
         else:
@@ -204,7 +208,7 @@ def binary_encode_simple(message, args):
     return binary_encode
 
 
-def decode_sequence_simple(sequence, args):
+def decode_sequence(sequence, args):
     # This is the simple version of the main function used for decoding. 
     bit_code_to_bytes = {'00': 1, '01': 2, '10': 3, '11': 1}
     idx = 0
