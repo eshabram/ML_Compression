@@ -210,7 +210,7 @@ def decode_sequence_simple(sequence, args):
     idx = 0
     message = ''
     
-    while idx < len(sequence) and len(sequence) - idx > 8:
+    while idx < len(sequence) and len(sequence) - idx >= 8:
         if sequence[idx] == '1':
             idx += 1
             # Extract the bit code
