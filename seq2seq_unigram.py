@@ -216,7 +216,7 @@ def decode_sequence_simple(sequence, args):
             # Extract the bit code
             bit_code = sequence[idx:idx+2]
             idx += 2
-    
+
             # Determine the number of bytes to read based on the bit code
             num_bytes = bit_code_to_bytes[bit_code]
     

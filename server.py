@@ -21,10 +21,10 @@ def run_server(args):
                     if args.verbose:
                         print("Received binary string:", binary_string)
                     if binary_string:
-                        if args.simple:
-                            result = decode_sequence_simple(binary_string, args)
-                        else:
+                        if args.advanced:
                             result = decode_sequence(binary_string, args)
+                        else:
+                            result = decode_sequence_simple(binary_string, args)
 
                         print(f'Recv From {client_ip}:\n--> "\033[32m{result}\033[0m"')
                     else:
@@ -37,8 +37,8 @@ def run_server(args):
 if __name__ == "__main__":
     # parse arguments
     parser = argparse.ArgumentParser(description="")
-    parser.add_argument("-s", "--simple", \
-                        action="store_true", help="Enable simple mode.")
+    parser.add_argument("-a", "--advanced", \
+                        action="store_true", help="Enable advanced mode.")
     parser.add_argument("-v", "--verbose", \
                         action="store_true", help="Enable verbose mode.")
     args = parser.parse_args()

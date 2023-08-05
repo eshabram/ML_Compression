@@ -20,10 +20,10 @@ def run_client(args):
             message = input('Enter message: ')
             if len(message) == 0:
                 continue
-            if args.simple:
-                binary_string = binary_encode_simple(message, args)
-            else:
+            if args.advanced:
                 binary_string = binary_encode(message, args)
+            else:
+                binary_string = binary_encode_simple(message, args)
             if args.verbose:
                 print(f'String: {binary_string}')
             
@@ -55,8 +55,8 @@ def run_client(args):
 if __name__ == "__main__":
     # Parse arguments
     parser = argparse.ArgumentParser(description="")
-    parser.add_argument("-s", "--simple", \
-                        action="store_true", help="Enable simple mode.")
+    parser.add_argument("-a", "--advanced", \
+                        action="store_true", help="Enable advanced mode.")
     parser.add_argument("-v", "--verbose", \
                         action="store_true", help="Enable verbose mode.")
     args = parser.parse_args()
