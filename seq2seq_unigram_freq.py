@@ -203,7 +203,7 @@ def binary_encode_simple(message, args):
             binary_encode += '1' + str(key.iloc[0])
         else:
             for letter in token:
-                binary_encode += '0' + bin(ord(letter))[2:]
+                binary_encode += str(bin(ord(letter))[2:]).zfill(8)                
             if args.verbose:
                 print(f"Warning: Token '{token}' not found in dataframe. Sending as ascii representation.")
 

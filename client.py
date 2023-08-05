@@ -9,11 +9,11 @@ def run_client(args):
             def read_bin(binary_data):
                 pad = 0
                 binary_data = "".join(str(bit) for bit in binary_string)
-                if args.verbose:
-                    print(f'Binary: {binary_data}')
                 if len(binary_data) % 8 != 0:
                     pad = 8 - len(binary_data)
-                print(f'Binary length = {len(binary_data)} + {pad} padding')
+                if args.verbose:
+                    print(f'Binary: {binary_data}')
+                    print(f'Binary length = {len(binary_data)} + {pad} padding')
                 return len(binary_data) + pad
             
             # get message and encode
@@ -36,7 +36,8 @@ def run_client(args):
             
             bin_length = read_bin(binary_data)
             ascii_length = len(message) * 8
-            print(f'Message before compression: {ascii_length} bits')
+            if args.verbose:
+                print(f'Message before compression: {ascii_length} bits')
             print(f'Percentage of original size: {bin_length / ascii_length * 100:.3g}%\n')
             
             # Send binary data over the network
