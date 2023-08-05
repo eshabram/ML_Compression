@@ -269,6 +269,27 @@ def get_word(idx):
 animation_thread.start()
 df['key'] = df.index.map(lambda x: encode_number(x, bits, bit_code))
 
+"""
+# this section of cade adds ascii to the end of df so that it can be used as
+# a token.
+# ASCII codes from 32 to 126
+ascii_codes = list(range(32, 127))
+ascii_chars = [chr(code) for code in ascii_codes]
+
+# Generate keys for each ASCII character
+keys = [f'11{format(i, "08b")}' for i in range(len(ascii_chars))][::-1]
+animation_event.set()
+animation_thread.join()
+
+# Create a new dataframe with ASCII characters and their keys
+ascii_df = pd.DataFrame({
+    'word': ascii_chars,
+    'key': keys
+})
+
+# Append the new dataframe to the original one
+df = pd.concat([df, ascii_df], ignore_index=True)  
+"""
 animation_event.set()
 animation_thread.join()
 
