@@ -52,7 +52,15 @@ def encode_number(num, bits, bit_code):
 def binary_encode_advanced(message, args):
     # This version of encode aims to encode the max data possible, while
     # still retaining a large degree of compression.
-        
+    
+    # build a map for capitol letters
+    # caps_map = ''
+    # for letter in message:
+    #     if letter.islower():
+    #         caps_map += '0'
+    #     elif letter.isupper():
+    #         caps_map += '1'
+            
     # tokenize words and punctuation (including spaces)
     tokens = nltk.regexp_tokenize(message, pattern=r'\s+|\S+')    
     if args.verbose:
@@ -62,15 +70,15 @@ def binary_encode_advanced(message, args):
     # locate the index of a given word, and add it to the scheme
     for i, token in enumerate(tokens):
         # append SPC bits
-        #pdb.set_trace()
         if ' ' in token:
             for letter in token:
                 # 1 to signal upcoming 2 bit code 11
                 binary_encode += '111'
             continue
-        # currently, single letters are in the dataframe, but we ignore them      
+        # currently, single letters are in the dataframe, but we ignore them. 
+        # To preserve capitols, change token.lower() to token, and vice versa
         if len(token) > 1:
-            key = df.loc[df['word'] == token.lower(), 'key']
+            key = df.loc[df['word'] == token, 'key']
         else:
             key = pd.Series()
         if not key.empty:
@@ -82,7 +90,8 @@ def binary_encode_advanced(message, args):
             if args.verbose:
                 print(f"Warning: Token '{token}' not found in dataframe. Sending as ascii representation.")
 
-
+    # add capitols map
+    # binary_encode = caps_map + binary_encode
     return binary_encode
 
 
@@ -93,9 +102,11 @@ def decode_sequence_advanced(sequence, args):
     bit_code_to_bytes = {'00': 1, '01': 2, '10': 3, '11': 1}
     idx = 0
     message = ''
-    
+    # get the capitols map if there is one
+#    if sequence[0] == 1:
+#        caps_map = sequence[1:]
+        
     while idx < len(sequence) and len(sequence) - idx >= 8:
-        #pdb.set_trace()
         num_str = ''
         if sequence[idx] == '1':
             idx += 1
@@ -129,13 +140,15 @@ def decode_sequence_advanced(sequence, args):
                 message + ' '
             try:
                 while sequence[idx] == '0':
-                    ascii_code = int(sequence[idx:idx+8], 2)  # Convert the 8-bit code to an integer
-                    ascii_character = chr(ascii_code)  # Convert the integer to the corresponding ASCII character
+                    # Convert the 8-bit code to an integer
+                    ascii_code = int(sequence[idx:idx+8], 2)  
+                    # Convert the integer to the corresponding ASCII character
+                    ascii_character = chr(ascii_code)  
                     word += ascii_character      
                     idx += 8
-
             except IndexError:
                 pass
+            
             message  += word
     return message
 
