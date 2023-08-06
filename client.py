@@ -59,5 +59,7 @@ if __name__ == "__main__":
                         action="store_true", help="Enable advanced mode.")
     parser.add_argument("-v", "--verbose", \
                         action="store_true", help="Enable verbose mode.")
+    parser.add_argument("-e", "--exact", \
+                        action="store_true", help="Enable exact mode.")
     args = parser.parse_args()
     run_client(args)

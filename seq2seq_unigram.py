@@ -4,7 +4,6 @@ import numpy as np
 import os
 import sys
 import time
-import string
 import threading
 import nltk
 nltk.download('punkt')
@@ -51,127 +50,93 @@ def encode_number(num, bits, bit_code):
 
 
 def binary_encode_advanced(message, args):
-    # This function does the encoding of messages in our custom binary format.
-    # the format is read from left to right, where the first two bits are one of
-    # four combinations indicating whether there are more bytes to be read after 
-    # the first byte. 00 indicates just the first byte, 01 indicates that there 
-    # are two bytes to be read in. Once those bytes have been read, the next code
-    # is given, and the process repeats. 
+    # This version of encode aims to encode the max data possible, while
+    # still retaining a large degree of compression.
         
-    tokens = nltk.word_tokenize(message)
-    
-    token_space_info = []  # This list will store tuples (token, space_before)
-    
-    last_end = 0  # this will keep track of where the last token ended
-    
-    for token in tokens:
-        start = message.find(token, last_end)  # look for token occurrence after the last token
-        space_before = False  # default is True, meaning we assume there's a space before
-        if start > 0 and message[start - 1] != ' ' and token in string.punctuation:
-            space_before = True
-        token_space_info.append((token, space_before))
-        last_end = start + len(token)  # update the last token's end
-    
-    print(token_space_info)
+    # tokenize words and punctuation (including spaces)
+    tokens = nltk.regexp_tokenize(message, pattern=r'\s+|\S+')    
     if args.verbose:
-        print(tokens)
-    
+        print(tokens)    
     binary_encode = ''
-    # locate the index of a given word
-    for token, no_space_before in token_space_info:    
-        append_bits = ''
-        key = df.loc[df['word'] == token.lower(), 'key']
-        # append bits for token attributes
-        if not key.empty:
-            if token.istitle():
-                append_bits += '101'
-            if no_space_before and token in string.punctuation:
-                append_bits += '110'
-            if token.isdigit():
-                append_bits += '111'
-            
-            # handle the space before info, if required, using space_before variable
-
-            append_bits += '0'
-            if token.isdigit():
-                return
-            print(f'Key: {key}')
-            binary_encode += (append_bits + str(key.iloc[0]))
+    
+    # locate the index of a given word, and add it to the scheme
+    for i, token in enumerate(tokens):
+        # append SPC bits
+        #pdb.set_trace()
+        if ' ' in token:
+            for letter in token:
+                # 1 to signal upcoming 2 bit code 11
+                binary_encode += '111'
+            continue
+        # currently, single letters are in the dataframe, but we ignore them      
+        if len(token) > 1:
+            key = df.loc[df['word'] == token.lower(), 'key']
         else:
-            print(f"Warning: Token '{token}' not found in dataframe.")
-            
+            key = pd.Series()
+        if not key.empty:
+            binary_encode += '1' + str(key.iloc[0])
+        else:
+            # add ascii in bytes. We'll use the leading zero for decode
+            for letter in token:
+                binary_encode += str(bin(ord(letter))[2:]).zfill(8)                
+            if args.verbose:
+                print(f"Warning: Token '{token}' not found in dataframe. Sending as ascii representation.")
+
+
     return binary_encode
 
 
 def decode_sequence_advanced(sequence, args):
+    # this is the advanced version of the compression that aims to 
+    # recreate the message as close to original as possible.
+    
     bit_code_to_bytes = {'00': 1, '01': 2, '10': 3, '11': 1}
     idx = 0
-    words = []
-    no_space = False
-
-    while idx < len(sequence):
-        attributes = []
-        # Check for the presence of attributes
-        while sequence[idx] == '1':
-            #pdb.set_trace()
-
-            # Extract the next two bits to determine the attribute type
-            attribute_code = sequence[idx:idx+2]
+    message = ''
+    
+    while idx < len(sequence) and len(sequence) - idx >= 8:
+        #pdb.set_trace()
+        num_str = ''
+        if sequence[idx] == '1':
+            idx += 1
+            # Extract the bit code
+            bit_code = sequence[idx:idx+2]
             idx += 2
             
-            if attribute_code == '10':
-                attributes.append("capitalized")
-            elif attribute_code == '11':
-                attributes.append("no_space_punctuation")
-                print(f'Attributes: {attributes}')
-            # Add more attribute handling as needed...
-
-        # After reading attributes, move past the '0' bit
-        idx += 1
-
-        # Extract the bit code to determine the bytes for the key
-        bit_code = sequence[idx:idx+2]
-        idx += 2
-
-        # Determine the number of bytes to read based on the bit code
-        num_bytes = bit_code_to_bytes[bit_code]
-
-        # Read the number and convert to integer
-        num_str = ''
-        for _ in range(num_bytes):
-            if len(sequence) - idx < 8:
-                break
-            num_str += sequence[idx:idx+8]
-            idx += 8
-            
-        if num_str:
             if bit_code == '11':
-                # Subtract the integer value of the byte from the length of df
-                key_val = len(df) - int(num_str, 2) -1
-            else:
-                key_val = int(num_str, 2)
-            #pdb.set_trace()
-            # Retrieve word from dataframe based on the key
-            word = get_word(key_val)
-            
-            # Handle attributes
-            if "capitalized" in attributes:
-                word = word.capitalize()
-            
-            if "no_space_punctuation" in attributes:
-                no_space = True
-                
-            words.append(word)
+                # deal with spacing
+                message += ' '
+                continue
 
-            
-    #pdb.set_trace()
-    # Reconstruct the messages
-    if no_space:
-        message = ''.join(words)
-    else:
-        message = ' '.join(words)
-
+            # Determine the number of bytes to read based on the bit code
+            num_bytes = bit_code_to_bytes[bit_code]
     
+            # Read the number and convert to integer
+            for _ in range(num_bytes):
+                if len(sequence) - idx < 8:
+                    break
+                num_str += sequence[idx:idx+8]
+                idx += 8
+                
+            if num_str:
+                index_value = int(num_str, 2)
+                    
+            message += get_word(index_value)
+
+        else:
+            word = ''
+            if len(message) != 0:
+                message + ' '
+            try:
+                while sequence[idx] == '0':
+                    ascii_code = int(sequence[idx:idx+8], 2)  # Convert the 8-bit code to an integer
+                    ascii_character = chr(ascii_code)  # Convert the integer to the corresponding ASCII character
+                    word += ascii_character      
+                    idx += 8
+
+            except IndexError:
+                pass
+            message  += word
     return message
 
 
@@ -181,7 +146,7 @@ def binary_encode(message, args):
     # compression down between 30% and 40%. It doesn't handle numbers well.
     
     # tokenize words and punctuation
-    tokens = nltk.word_tokenize(message.lower())
+    tokens = nltk.word_tokenize(message)
     if args.verbose:
         print(tokens)
     # Filter out punctuation
@@ -192,10 +157,9 @@ def binary_encode(message, args):
     # locate the index of a given word, and add it to the scheme
     for token in tokens:    
         if len(token) > 1:
-            key = df.loc[df['word'] == token, 'key']
+            key = df.loc[df['word'] == token.lower(), 'key']
         else:
             key = pd.Series()
-        #pdb.set_trace()
         if not key.empty:
             binary_encode += '1' + str(key.iloc[0])
         else:
@@ -245,7 +209,6 @@ def decode_sequence(sequence, args):
                 message += ' ' + get_word(index_value)
 
         else:
-            #pdb.set_trace()
             word = ''
             if len(message) != 0:
                 message + ' '
@@ -332,6 +295,11 @@ or
 101 = number no space before
 110 =
 111 = 
- 
+
+-----------------------------------------------
+
+ hey you    great 2  2 2  
+111 101 00001011 00011110 111 100 00001110 111 111 111 111 100 11010000 111 00110010 111 111 
+00110010 111 00110010 111 111
 
 """
