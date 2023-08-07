@@ -22,11 +22,14 @@ def run_server(args):
                         print("Received binary string:", binary_string)
                     if binary_string:
                         if args.advanced:
-                            result = decode_sequence_advanced(binary_string, args)
+                            message = decode_sequence_advanced(binary_string, args)
                         else:
-                            result = decode_sequence(binary_string, args)
+                            message = decode_sequence(binary_string, args)
 
-                        print(f'Recv From {client_ip}:\n--> "\033[32m{result}\033[0m"')
+                        if '\n' in message:
+                            print(f'Recv From {client_ip}:\n\033[32m{message}\033[0m\nEND')
+                        else:
+                            print(f'Recv From {client_ip}:\n--> "\033[32m{message}\033[0m"')
                     else:
                         print("Received an empty binary string.") 
         except KeyboardInterrupt:

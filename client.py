@@ -16,8 +16,12 @@ def run_client(args):
                     print(f'Binary length = {len(binary_data)} + {pad} padding')
                 return len(binary_data) + pad
             
-            # get message and encode
-            message = input('Enter message: ')
+            if args.filepath is not None:
+                with open(args.filepath, 'r') as file:
+                    message = file.read()
+            else:
+                # get message and encode
+                message = input('Enter message: ')
             if len(message) == 0:
                 continue
             if args.advanced:
@@ -47,6 +51,8 @@ def run_client(args):
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 s.connect((HOST, PORT))
                 s.sendall(binary_data)
+            if args.filepath is not None:
+                break
         except KeyboardInterrupt:
             print(' --Program terminated.--')
             break
@@ -59,6 +65,7 @@ if __name__ == "__main__":
                         action="store_true", help="Enable advanced mode.")
     parser.add_argument("-v", "--verbose", \
                         action="store_true", help="Enable verbose mode.")
-
+    parser.add_argument("-f", "--filepath", action="store", const=None, type=str, nargs="?")
+    
     args = parser.parse_args()
     run_client(args)

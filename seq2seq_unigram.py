@@ -62,7 +62,7 @@ def binary_encode_advanced(message, args):
     #         caps_map += '1'
             
     # tokenize words and punctuation (including spaces)
-    tokens = nltk.regexp_tokenize(message, pattern=r'\s+|\S+')    
+    tokens = nltk.regexp_tokenize(message, pattern=r' |\n|\S+')
     if args.verbose:
         print(tokens)    
     binary_encode = ''
@@ -87,8 +87,8 @@ def binary_encode_advanced(message, args):
             # add ascii in bytes. We'll use the leading zero for decode
             for letter in token:
                 binary_encode += str(bin(ord(letter))[2:]).zfill(8)                
-            if args.verbose:
-                print(f"Warning: Token '{token}' not found in dataframe. Sending as ascii representation.")
+            #if args.verbose:
+                #print(f"Warning: Token '{token}' not found in dataframe. Sending as ascii representation.")
 
     # add capitols map
     # binary_encode = caps_map + binary_encode
