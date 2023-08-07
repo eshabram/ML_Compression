@@ -16,8 +16,18 @@ python3 server.py -v
 
 ```
 
-The -v is for verbose mode, which gives more information. There is a --advanced mode that
-I am currently working on and is not in a functional state, so don't enable it.
+The -v is for verbose mode, which gives more information. 
+
+Advanced mode is also available, which gives a perfect (lossless?) representation of the message, particularly 
+when you give it a file like this:
+
+```
+python3 client -a -f <file name>
+``` 
+and 
+```
+python3 client -a
+```
 
 That's it. If you'd like to verify that the data is the size specified, you can run wireshark and capture one 
 the TCP packets and find the "payload" or "data". Have fun!
