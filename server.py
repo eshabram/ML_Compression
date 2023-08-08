@@ -13,11 +13,19 @@ def run_server(args):
                 s.bind((HOST, PORT))
                 s.listen()
                 print(f'\nListening on: {HOST}:{PORT}')
+                
+                # receive multiple packets
                 conn, addr = s.accept()
                 with conn:
                     client_ip, client_port = addr
-                    received_data = conn.recv(1024)
+                    received_data = b''
+                    while True:
+                        chunk = conn.recv(1024)
+                        if not chunk:
+                            break
+                        received_data += chunk
                     binary_string = ''.join(format(byte, '08b') for byte in received_data)
+
                     if args.verbose:
                         print("Received binary string:", binary_string)
                     if binary_string:

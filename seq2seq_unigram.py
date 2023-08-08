@@ -62,7 +62,7 @@ def binary_encode_advanced(message, args):
     #         caps_map += '1'
             
     # tokenize words and punctuation (including spaces)
-    tokens = nltk.regexp_tokenize(message, pattern=r' |\n|\S+')
+    tokens = nltk.regexp_tokenize(message, pattern=r' |\n|[a-zA-Z]+|\d+|[^a-zA-Z0-9\s]+')
     if args.verbose:
         print(tokens)    
     binary_encode = ''
@@ -276,6 +276,33 @@ animation_thread.join()
 
 
 """ 
+-----------------------------------------------
+Description of Advanced Mode:
+    
+First bit indicates an index value. If the index bit is set to 1, then the next
+two bits are read and interpreted, where 00 idicates only one byte to be read, 
+01 indicates two, 10 indicates three, and 11 incidates a space. If the first bit
+is a 0, then the next 7 bits is encoded as the ascii character representation. 
+In this way, the message can be, at largest, 100% the size of the original 
+message. This is currently how capitol letters are dealt with, but may change 
+in the future (perhaps to a capitols map).
+
+
+NOTE: I could add a bit after 1 11 for a space to always be read and have it 
+represent either a space or a newline. Then the question would be, how many 
+spaces per line? If it were 8 spaces per newline character on average, then the
+newline char might benefit from the added functionality, but otherwise it would
+make the message bigger. We may be better off going with adding the "\n" to the 
+dictionary.   
+
+IDEA: Since the advanced encoding deals more with text of all kinds, including 
+newlines and things such as python code, then it would be a good idea to integrate
+Huffman encoding for the ascii character after a certain point. I say after a 
+certain point because small messages like "How are you?" have a negative benefit 
+from Huffman encoding due to lack of duplicate characters and the inclusion of
+the translation key. 
+
+-----------------------------------------------
 00 = 
 01 = capital word
 10 = no space before
@@ -309,10 +336,6 @@ or
 110 =
 111 = 
 
------------------------------------------------
 
- hey you    great 2  2 2  
-111 101 00001011 00011110 111 100 00001110 111 111 111 111 100 11010000 111 00110010 111 111 
-00110010 111 00110010 111 111
 
 """

@@ -51,6 +51,7 @@ def run_client(args):
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 s.connect((HOST, PORT))
                 s.sendall(binary_data)
+            s.close()
             if args.filepath is not None:
                 break
         except KeyboardInterrupt:
