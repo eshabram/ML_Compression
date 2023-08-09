@@ -1,6 +1,7 @@
 import socket
 import argparse
 from seq2seq_unigram import binary_encode_advanced, binary_encode
+from huffman import *
 
 def run_client(args):
     print('\n')
@@ -12,8 +13,11 @@ def run_client(args):
                 if len(binary_data) % 8 != 0:
                     pad = 8 - len(binary_data)
                 if args.verbose:
-                    print(f'Binary: {binary_data}')
-                    print(f'Binary length = {len(binary_data)} + {pad} padding')
+                    if len(binary_data) > 100:
+                        print(f'Binary length: ...{binary_data[-100:]}')
+                    else:
+                        print(f'Binary: {binary_data}')
+                print(f'Binary length = {len(binary_data)} + {pad} padding')
                 return len(binary_data) + pad
             
             if args.filepath is not None:
@@ -29,7 +33,10 @@ def run_client(args):
             else:
                 binary_string = binary_encode(message, args)
             if args.verbose:
-                print(f'String: {binary_string}')
+                if len(binary_string) > 100:
+                    print(f'Binary string: ...{binary_string[-100:]}')
+                else:
+                    print(f'Binary string: {binary_string}')
             
             # Convert binary string to bytes
             while len(binary_string) % 8 != 0:
@@ -40,8 +47,8 @@ def run_client(args):
             
             bin_length = read_bin(binary_data)
             ascii_length = len(message) * 8
-            if args.verbose:
-                print(f'Message before compression: {ascii_length} bits')
+
+            print(f'Message before compression: {ascii_length} bits')
             print(f'Percentage of original size: {bin_length / ascii_length * 100:.3g}%\n')
             
             # Send binary data over the network
@@ -65,6 +72,8 @@ if __name__ == "__main__":
     parser.add_argument("-a", "--advanced", \
                         action="store_true", help="Enable advanced mode.")
     parser.add_argument("-v", "--verbose", \
+                        action="store_true", help="Enable verbose mode.")
+    parser.add_argument("-hm", "--huffman", \
                         action="store_true", help="Enable verbose mode.")
     parser.add_argument("-f", "--filepath", action="store", const=None, type=str, nargs="?")
     
