@@ -52,7 +52,7 @@ def run_client(args):
 
             print(f'Message before compression: {ascii_length} bits')
             print(f'% of original - SMC: {bin_length / ascii_length * 100:.3g}%')
-            if len(huffman) != 0:
+            if args.supercompress and len(huffman) != 0:
                 huff_encode = huffman_encode(huffman)                
                 huffman_len = len(huffman) * 8
                 encoded_len = len(huff_encode)
@@ -99,6 +99,8 @@ if __name__ == "__main__":
                         action="store_true", help="Measure message against Huffman coding.")
     parser.add_argument("-f", "--filepath", action="store", const=None, type=str, nargs="?")
     parser.add_argument("-s", "--supercompress", \
+                        action="store_true", help="Enable advanced mode.")
+    parser.add_argument("-t", "--test", \
                         action="store_true", help="Enable advanced mode.")
     
     args = parser.parse_args()

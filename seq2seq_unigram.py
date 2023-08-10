@@ -53,14 +53,6 @@ def encode_number(num, bits, bit_code):
 def binary_encode_advanced(message, args):
     # This version of encode aims to encode the max data possible, while
     # still retaining a large degree of compression.
-    
-    # build a map for capitol letters
-    # caps_map = ''
-    # for letter in message:
-    #     if letter.islower():
-    #         caps_map += '0'
-    #     elif letter.isupper():
-    #         caps_map += '1'
             
     # tokenize words and punctuation (including spaces)
     tokens = nltk.regexp_tokenize(message, pattern=r' |\n|[a-zA-Z]+|\d+|[^a-zA-Z0-9\s]+')
@@ -68,6 +60,7 @@ def binary_encode_advanced(message, args):
     binary_encode = ''
     huffman = ''
     spaces = ''
+    key = pd.Series()
     
     # locate the index of a given word, and add it to the scheme
     for i, token in enumerate(tokens):
@@ -82,10 +75,8 @@ def binary_encode_advanced(message, args):
         # currently, single letters are in the dataframe, but we ignore them. 
         # To preserve capitols, change token.lower() to token, and vice versa
         if len(token) > 1:
-            key = df.loc[df['word'] == token, 'key']
-        else:
-            key = pd.Series()
-        if not key.empty:
+            key = word_to_key.get(token, pd.Series())
+        if isinstance(key, pd.Series) and not key.empty:
             binary_encode += '1' + str(key.iloc[0])
         else:
             # add ascii in bytes. We'll use the leading zero for decode
@@ -97,8 +88,8 @@ def binary_encode_advanced(message, args):
     This part calls the function to convert the current message to SMC + huffman
     
     """
-    # if args.supercompress:
-    #     binary_encode = huffify(binary_encode)
+    if args.test:
+        binary_encode = huffify(binary_encode)
     # add capitols map
     # binary_encode = caps_map + binary_encode
     return binary_encode, huffman, spaces
@@ -111,9 +102,6 @@ def decode_sequence_advanced(sequence, args):
     bit_code_to_bytes = {'00': 1, '01': 2, '10': 3, '11': 1}
     idx = 0
     message = ''
-    # get the capitols map if there is one
-#    if sequence[0] == 1:
-#        caps_map = sequence[1:]
         
     while idx < len(sequence) and len(sequence) - idx >= 8:
         num_str = ''
@@ -319,6 +307,8 @@ def get_word(idx):
 # Index = rank. Keys are shorter for more common words.
 animation_thread.start()
 df['key'] = df.index.map(lambda x: encode_number(x, bits, bit_code))
+# reverse lookup dictionary
+word_to_key = dict(zip(df['word'], df['key']))
 
 """
 # this section of cade adds ascii to the end of df so that it can be used as
