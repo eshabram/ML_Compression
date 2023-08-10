@@ -92,9 +92,13 @@ def binary_encode_advanced(message, args):
             for letter in token:
                 binary_encode += str(bin(ord(letter))[2:]).zfill(8)    
                 huffman += letter
-            #if args.verbose:
-                #print(f"Warning: Token '{token}' not found in dataframe. Sending as ascii representation.")
 
+    """
+    This part calls the function to convert the current message to SMC + huffman
+    
+    """
+    # if args.supercompress:
+    #     binary_encode = huffify(binary_encode)
     # add capitols map
     # binary_encode = caps_map + binary_encode
     return binary_encode, huffman, spaces
@@ -157,6 +161,68 @@ def decode_sequence_advanced(sequence, args):
             message  += word
     return message
 
+def huffify(sequence):
+    """ 
+    TODO: 
+    I need to make this function convert the ascii portion of "sequence"
+    to the huffman codes. To do this, I will need to call huffman_encode(sequence, prefix=0)
+    in order to get the translation key. The translation key should likely be
+    appended to the beginning of the message so that it can be read in and saved
+    by the decoder. I will also add a bit the the beginning after I've updated 
+    and returned this sequence in the encode function. This will indicate to the 
+    server that is should be decoded in one of two ways. 
+    """
+    
+    bit_code_to_bytes = {'00': 1, '01': 2, '10': 3, '11': 1}
+    idx = 0
+    message = ''
+        
+    while idx < len(sequence) and len(sequence) - idx >= 8:
+        num_str = ''
+        if sequence[idx] == '1':
+            idx += 1
+            # Extract the bit code
+            bit_code = sequence[idx:idx+2]
+            idx += 2
+            
+            if bit_code == '11':
+                # deal with spacing
+                message += ' '
+                continue
+
+            # Determine the number of bytes to read based on the bit code
+            num_bytes = bit_code_to_bytes[bit_code]
+    
+            # Read the number and convert to integer
+            for _ in range(num_bytes):
+                if len(sequence) - idx < 8:
+                    break
+                num_str += sequence[idx:idx+8]
+                idx += 8
+                
+            if num_str:
+                index_value = int(num_str, 2)
+                    
+            message += get_word(index_value)
+
+        else:
+            word = ''
+            if len(message) != 0:
+                message + ' '
+            try:
+                while sequence[idx] == '0':
+                    # Convert the 8-bit code to an integer
+                    ascii_code = int(sequence[idx:idx+8], 2)  
+                    # Convert the integer to the corresponding ASCII character
+                    ascii_character = chr(ascii_code)  
+                    word += ascii_character      
+                    idx += 8
+            except IndexError:
+                pass
+            
+            message  += word
+    return message
+    
 
 def binary_encode(message, args):
     # This function is the simple/light-weight version of the encoding scheme.

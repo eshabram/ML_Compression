@@ -47,10 +47,9 @@ def build_huffman_tree(message, reserved_prefix='0'):
 
 
 
-def huffman_encode(message):
-    huffman_tree = build_huffman_tree(message, reserved_prefix=None)
+def huffman_encode(message, prefix=None):
+    huffman_tree = build_huffman_tree(message, reserved_prefix=prefix)
     huff_dict = dict(huffman_tree)
-    print(huff_dict)
     header = ""
     for char, code in huff_dict.items():
         header += format(ord(char), '08b') + format(len(code), '04b') + code

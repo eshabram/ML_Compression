@@ -52,7 +52,7 @@ def run_client(args):
 
             print(f'Message before compression: {ascii_length} bits')
             print(f'% of original - SMC: {bin_length / ascii_length * 100:.3g}%')
-            if args.supercompress and len(huffman) != 0:
+            if len(huffman) != 0:
                 huff_encode = huffman_encode(huffman)                
                 huffman_len = len(huffman) * 8
                 encoded_len = len(huff_encode)
