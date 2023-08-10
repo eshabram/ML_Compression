@@ -59,6 +59,7 @@ def huffman_decode(encoded):
 
     return decoded
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="This script implements huffman coding.")
     parser.add_argument("-b", "--binary", \

@@ -64,8 +64,7 @@ def binary_encode_advanced(message, args):
             
     # tokenize words and punctuation (including spaces)
     tokens = nltk.regexp_tokenize(message, pattern=r' |\n|[a-zA-Z]+|\d+|[^a-zA-Z0-9\s]+')
-#    if args.verbose:
-#        print(tokens)    
+  
     binary_encode = ''
     huffman = ''
     spaces = ''
@@ -95,27 +94,10 @@ def binary_encode_advanced(message, args):
                 huffman += letter
             #if args.verbose:
                 #print(f"Warning: Token '{token}' not found in dataframe. Sending as ascii representation.")
-    if args.supercompress and len(huffman) != 0:
-        huff_encode = huffman_encode(huffman)
-        huffman_len = len(huffman) * 8
-        encoded_len = len(huff_encode)
-        # subtract 5 bits for every space to compensate for 111 code
-        after_space_encode = (huffman_len - (len(spaces) * 5))
-        improvement = encoded_len / after_space_encode
-        if (after_space_encode - encoded_len) < 0:
-            add = 'Add'
-            to_from = 'to'
-        else:
-            add = 'Subtract'
-            to_from = 'from'
-        print(f'ASCII bits length: {huffman_len}')
-        print(f'ASCII after spc encode: {after_space_encode}')
-        print(f'huff bits length: {encoded_len}')
-        print(f'Potential Improvement: {100 - improvement * 100:.3g}%')
-        print(f'{add} this many bits {to_from} final: {abs(after_space_encode - encoded_len)}')
+
     # add capitols map
     # binary_encode = caps_map + binary_encode
-    return binary_encode
+    return binary_encode, huffman, spaces
 
 
 def decode_sequence_advanced(sequence, args):
@@ -325,6 +307,8 @@ certain point because small messages like "How are you?" have a negative benefit
 from Huffman encoding due to lack of duplicate characters and the inclusion of
 the translation key. 
 
+1300 is the length of the worst case scenario for when huffman begins to have
+a positive impact. 
 -----------------------------------------------
 00 = 
 01 = capital word

@@ -1,7 +1,7 @@
 import socket
 import argparse
 import pdb
-from seq2seq_unigram import binary_encode_advanced, binary_encode
+from seq2seq_unigram import *
 from huffman import huffman_encode
 
 def run_client(args):
@@ -30,7 +30,7 @@ def run_client(args):
             if len(message) == 0:
                 continue
             if args.advanced:
-                binary_string = binary_encode_advanced(message, args)
+                binary_string, huffman, spaces = binary_encode_advanced(message, args)
             else:
                 binary_string = binary_encode(message, args)
             if args.verbose:
@@ -49,8 +49,23 @@ def run_client(args):
             bin_length = read_bin(binary_data)
             ascii_length = len(message) * 8
 
+
             print(f'Message before compression: {ascii_length} bits')
             print(f'% of original - SMC: {bin_length / ascii_length * 100:.3g}%')
+            if args.supercompress and len(huffman) != 0:
+                huff_encode = huffman_encode(huffman)                
+                huffman_len = len(huffman) * 8
+                encoded_len = len(huff_encode)
+                # subtract 5 bits for every space to compensate for 111 code
+                after_space_encode = (huffman_len - (len(spaces) * 5))
+                improvement = encoded_len / after_space_encode
+                print('---------------------------Huffman----------------------------')
+                print(f'ASCII bits length: {huffman_len}')
+                print(f'ASCII after spc encode: {after_space_encode}')
+                print(f'huff bits length: {encoded_len}')
+                print(f'Potential Improvement: {100 - improvement * 100:.3g}%')
+                perc_both = (bin_length - (after_space_encode - encoded_len)) / ascii_length * 100
+                print(f'SMC + Huffman potentially: {perc_both:.3g}% of original size.')
             
             # get huffman coded length of message
             if args.huffman:
