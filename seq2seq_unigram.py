@@ -8,6 +8,7 @@ import threading
 import nltk
 nltk.download('punkt')
 from nltk.tokenize import word_tokenize
+from huffman import *
 import pdb
 
 # data retreived from https://www.kaggle.com/datasets/rtatman/english-word-frequency?resource=download
@@ -63,17 +64,21 @@ def binary_encode_advanced(message, args):
             
     # tokenize words and punctuation (including spaces)
     tokens = nltk.regexp_tokenize(message, pattern=r' |\n|[a-zA-Z]+|\d+|[^a-zA-Z0-9\s]+')
-    if args.verbose:
-        print(tokens)    
+#    if args.verbose:
+#        print(tokens)    
     binary_encode = ''
+    huffman = ''
+    spaces = ''
     
     # locate the index of a given word, and add it to the scheme
     for i, token in enumerate(tokens):
-        # append SPC bits
+        # append SPACE bits
         if ' ' in token:
             for letter in token:
                 # 1 to signal upcoming 2 bit code 11
                 binary_encode += '111'
+                huffman += letter
+                spaces += letter
             continue
         # currently, single letters are in the dataframe, but we ignore them. 
         # To preserve capitols, change token.lower() to token, and vice versa
@@ -86,10 +91,28 @@ def binary_encode_advanced(message, args):
         else:
             # add ascii in bytes. We'll use the leading zero for decode
             for letter in token:
-                binary_encode += str(bin(ord(letter))[2:]).zfill(8)                
+                binary_encode += str(bin(ord(letter))[2:]).zfill(8)    
+                huffman += letter
             #if args.verbose:
                 #print(f"Warning: Token '{token}' not found in dataframe. Sending as ascii representation.")
-
+    if args.supercompress and len(huffman) != 0:
+        huff_encode = huffman_encode(huffman)
+        huffman_len = len(huffman) * 8
+        encoded_len = len(huff_encode)
+        # subtract 5 bits for every space to compensate for 111 code
+        after_space_encode = (huffman_len - (len(spaces) * 5))
+        improvement = encoded_len / after_space_encode
+        if (after_space_encode - encoded_len) < 0:
+            add = 'Add'
+            to_from = 'to'
+        else:
+            add = 'Subtract'
+            to_from = 'from'
+        print(f'ASCII bits length: {huffman_len}')
+        print(f'ASCII after spc encode: {after_space_encode}')
+        print(f'huff bits length: {encoded_len}')
+        print(f'Potential Improvement: {100 - improvement * 100:.3g}%')
+        print(f'{add} this many bits {to_from} final: {abs(after_space_encode - encoded_len)}')
     # add capitols map
     # binary_encode = caps_map + binary_encode
     return binary_encode

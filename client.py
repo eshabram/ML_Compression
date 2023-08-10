@@ -1,7 +1,8 @@
 import socket
 import argparse
+import pdb
 from seq2seq_unigram import binary_encode_advanced, binary_encode
-from huffman import *
+from huffman import huffman_encode
 
 def run_client(args):
     print('\n')
@@ -16,7 +17,7 @@ def run_client(args):
                     if len(binary_data) > 100:
                         print(f'Binary length: ...{binary_data[-100:]}')
                     else:
-                        print(f'Binary: {binary_data}')
+                        print(f'Binary length: {binary_data}')
                 print(f'Binary length = {len(binary_data)} + {pad} padding')
                 return len(binary_data) + pad
             
@@ -49,7 +50,13 @@ def run_client(args):
             ascii_length = len(message) * 8
 
             print(f'Message before compression: {ascii_length} bits')
-            print(f'Percentage of original size: {bin_length / ascii_length * 100:.3g}%\n')
+            print(f'% of original - SMC: {bin_length / ascii_length * 100:.3g}%')
+            
+            # get huffman coded length of message
+            if args.huffman:
+                huff_len = len(huffman_encode(message))
+                print(f'% of original - Huf: {(huff_len / ascii_length) * 100:.3g}%')
+            print('\n')
             
             # Send binary data over the network
             HOST = 'localhost'  # Replace with the server's IP address
@@ -73,9 +80,11 @@ if __name__ == "__main__":
                         action="store_true", help="Enable advanced mode.")
     parser.add_argument("-v", "--verbose", \
                         action="store_true", help="Enable verbose mode.")
-    parser.add_argument("-hm", "--huffman", \
-                        action="store_true", help="Enable verbose mode.")
+    parser.add_argument("--huffman", \
+                        action="store_true", help="Measure message against Huffman coding.")
     parser.add_argument("-f", "--filepath", action="store", const=None, type=str, nargs="?")
+    parser.add_argument("-s", "--supercompress", \
+                        action="store_true", help="Enable advanced mode.")
     
     args = parser.parse_args()
     run_client(args)

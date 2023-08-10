@@ -3,8 +3,8 @@ import heapq
 import argparse
 import pdb
 
-def build_huffman_tree(s):
-    freq = Counter(s)
+def build_huffman_tree(message):
+    freq = Counter(message)
     heap = [[weight, [char, ""]] for char, weight in freq.items()]
     heapq.heapify(heap)
     
@@ -19,15 +19,15 @@ def build_huffman_tree(s):
     
     return sorted(heapq.heappop(heap)[1:], key=lambda p: (len(p[-1]), p))
 
-def huffman_encode(s):
-    huffman_tree = build_huffman_tree(s)
+def huffman_encode(message):
+    huffman_tree = build_huffman_tree(message)
     huff_dict = dict(huffman_tree)
     
     header = ""
     for char, code in huff_dict.items():
         header += format(ord(char), '08b') + format(len(code), '04b') + code
 
-    encoded_message = ''.join([huff_dict[char] for char in s])
+    encoded_message = ''.join([huff_dict[char] for char in message])
     
     return format(len(header), '016b') + header + encoded_message
 
@@ -86,4 +86,10 @@ if __name__ == '__main__':
     print(f'Percentage compression: {(encode_len / orig_len) * 100:.3g}%')
     #decoded = huffman_decode(encoded)
     #print(f"Decoded: {decoded}")
+    
+    """
+    !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~
+
+    
+    """
     
