@@ -15,9 +15,9 @@ def run_client(args):
                     pad = 8 - len(binary_data)
                 if args.verbose:
                     if len(binary_data) > 100:
-                        print(f'Binary length: ...{binary_data[-100:]}')
+                        print(f'Binary data: ...{binary_data[-100:]}')
                     else:
-                        print(f'Binary length: {binary_data}')
+                        print(f'Binary data: {binary_data}')
                 print(f'Binary length = {len(binary_data)} + {pad} padding')
                 return len(binary_data) + pad
             
@@ -29,24 +29,20 @@ def run_client(args):
                 message = input('Enter message: ')
             if len(message) == 0:
                 continue
-            if args.advanced:
-                binary_string, huffman, spaces = binary_encode_advanced(message, args)
+            if args.lossy:
+                binary_string = binary_encode_lossy(message, args)
             else:
-                binary_string = binary_encode(message, args)
+                binary_string, huffman, spaces = binary_encode(message, args)
             if args.verbose:
+                bin_data = ''.join(format(byte, '08b') for byte in binary_string)
                 if len(binary_string) > 100:
-                    print(f'Binary string: ...{binary_string[-100:]}')
+                    print(f'Binary string: ...{bin_data[-100:]}')
                 else:
-                    print(f'Binary string: {binary_string}')
+                    print(f'Binary string: {bin_data}')
             
-            # Convert binary string to bytes
-            while len(binary_string) % 8 != 0:
-                binary_string += '0'
-                
-            binary_data = bytes(int(binary_string[i:i+8], 2) \
-                                for i in range(0, len(binary_string), 8))
             
-            bin_length = read_bin(binary_data)
+            bin_length = len(binary_string) * 8
+            print(f'Bin_length: {bin_length}')
             ascii_length = len(message) * 8
 
 
@@ -79,7 +75,7 @@ def run_client(args):
             
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 s.connect((HOST, PORT))
-                s.sendall(binary_data)
+                s.sendall(binary_string)
             s.close()
             if args.filepath is not None:
                 break
@@ -91,8 +87,8 @@ def run_client(args):
 if __name__ == "__main__":
     # Parse arguments
     parser = argparse.ArgumentParser(description="")
-    parser.add_argument("-a", "--advanced", \
-                        action="store_true", help="Enable advanced mode.")
+    parser.add_argument("-l", "--lossy", \
+                        action="store_true", help="Enable lossy mode.")
     parser.add_argument("-v", "--verbose", \
                         action="store_true", help="Enable verbose mode.")
     parser.add_argument("--huffman", \

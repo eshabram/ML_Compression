@@ -50,7 +50,7 @@ def encode_number(num, bits, bit_code):
     return encoded 
 
 
-def binary_encode_advanced(message, args):
+def binary_encode(message, args):
     # This version of encode aims to encode the max data possible, while
     # still retaining a large degree of compression.
             
@@ -85,18 +85,22 @@ def binary_encode_advanced(message, args):
                 binary_encode += str(bin(ord(letter))[2:]).zfill(8)    
                 huffman += letter
 
-    """
-    This part calls the function to convert the current message to SMC + huffman
     
-    """
+    # calls the function to convert the current message to SMC + huffman
     if args.test:
         binary_encode = huffify(binary_encode)
-    # add capitols map
+        
+    # Convert binary string to bytes
+    while len(binary_encode) % 8 != 0:
+        binary_encode += '0'
+                
+    binary_encode = bytes(int(binary_encode[i:i+8], 2) \
+                    for i in range(0, len(binary_encode), 8))
     # binary_encode = caps_map + binary_encode
     return binary_encode, huffman, spaces
 
 
-def decode_sequence_advanced(sequence, args):
+def decode_sequence(sequence, args):
     # this is the advanced version of the compression that aims to 
     # recreate the message as close to original as possible.
     
@@ -216,8 +220,8 @@ def huffify(sequence):
     return message
     
 
-def binary_encode(message, args):
-    # This function is the simple/light-weight version of the encoding scheme.
+def binary_encode_lossy(message, args):
+    # This function is the lossy version of the encoding scheme.
     # this version retains as much meaning as possible while keeping the 
     # compression down between 30% and 40%. It doesn't handle numbers well.
     
@@ -244,11 +248,16 @@ def binary_encode(message, args):
             if args.verbose:
                 print(f"Warning: Token '{token}' not found in dataframe. Sending as ascii representation.")
 
+    while len(binary_encode) % 8 != 0:
+        binary_encode += '0'
+                
+    binary_encode = bytes(int(binary_encode[i:i+8], 2) \
+                    for i in range(0, len(binary_encode), 8))
 
     return binary_encode
 
 
-def decode_sequence(sequence, args):
+def decode_sequence_lossy(sequence, args):
     # This is the simple version of the main function used for decoding. 
     bit_code_to_bytes = {'00': 1, '01': 2, '10': 3, '11': 1}
     idx = 0

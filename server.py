@@ -1,6 +1,6 @@
 import socket
 import argparse
-from seq2seq_unigram import decode_sequence_advanced, decode_sequence
+from seq2seq_unigram import *
 from huffman import *
 
 HOST = 'localhost'  # Replace with the server's IP address
@@ -30,8 +30,8 @@ def run_server(args):
                     if args.verbose:
                         print("Received binary string:", binary_string)
                     if binary_string:
-                        if args.advanced:
-                            message = decode_sequence_advanced(binary_string, args)
+                        if args.lossy:
+                            message = decode_sequence_lossy(binary_string, args)
                         else:
                             message = decode_sequence(binary_string, args)
 
@@ -49,7 +49,7 @@ def run_server(args):
 if __name__ == "__main__":
     # parse arguments
     parser = argparse.ArgumentParser(description="")
-    parser.add_argument("-a", "--advanced", \
+    parser.add_argument("-l", "--lossy", \
                         action="store_true", help="Enable advanced mode.")
     parser.add_argument("-v", "--verbose", \
                         action="store_true", help="Enable verbose mode.")
