@@ -3,7 +3,23 @@ import heapq
 import argparse
 import pdb
 
-def build_huffman_tree(message):
+# def build_huffman_tree(message):
+#     freq = Counter(message)
+#     heap = [[weight, [char, ""]] for char, weight in freq.items()]
+#     heapq.heapify(heap)
+    
+#     while len(heap) > 1:
+#         lo = heapq.heappop(heap)
+#         hi = heapq.heappop(heap)
+#         for pair in lo[1:]:
+#             pair[1] = '0' + pair[1]
+#         for pair in hi[1:]:
+#             pair[1] = '1' + pair[1]
+#         heapq.heappush(heap, [lo[0] + hi[0]] + lo[1:] + hi[1:])
+    
+#     return sorted(heapq.heappop(heap)[1:], key=lambda p: (len(p[-1]), p))
+
+def build_huffman_tree(message, reserved_prefix='0'):
     freq = Counter(message)
     heap = [[weight, [char, ""]] for char, weight in freq.items()]
     heapq.heapify(heap)
@@ -11,18 +27,30 @@ def build_huffman_tree(message):
     while len(heap) > 1:
         lo = heapq.heappop(heap)
         hi = heapq.heappop(heap)
+        
         for pair in lo[1:]:
             pair[1] = '0' + pair[1]
         for pair in hi[1:]:
             pair[1] = '1' + pair[1]
+        
         heapq.heappush(heap, [lo[0] + hi[0]] + lo[1:] + hi[1:])
     
-    return sorted(heapq.heappop(heap)[1:], key=lambda p: (len(p[-1]), p))
+    huffman_codes = sorted(heapq.heappop(heap)[1:], key=lambda p: (len(p[-1]), p))
+    
+    if reserved_prefix:
+        for index, (char, code) in enumerate(huffman_codes):
+            while code.startswith(reserved_prefix):
+                code = '1' + code[1:]
+            huffman_codes[index] = (char, code)
+    
+    return dict(huffman_codes)
+
+
 
 def huffman_encode(message):
-    huffman_tree = build_huffman_tree(message)
+    huffman_tree = build_huffman_tree(message, reserved_prefix=None)
     huff_dict = dict(huffman_tree)
-    
+    print(huff_dict)
     header = ""
     for char, code in huff_dict.items():
         header += format(ord(char), '08b') + format(len(code), '04b') + code
@@ -85,8 +113,8 @@ if __name__ == '__main__':
     print(f'Original length: {orig_len}')
     print(f'Encoded length: {encode_len}')
     print(f'Percentage compression: {(encode_len / orig_len) * 100:.3g}%')
-    #decoded = huffman_decode(encoded)
-    #print(f"Decoded: {decoded}")
+    decoded = huffman_decode(encoded)
+    print(f"Decoded: {decoded}")
     
     """
     !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~
