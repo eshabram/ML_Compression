@@ -1,6 +1,7 @@
 ***/*data.txt
 **/*safe_data_copy.txt
 __pycache__/
+.idea/
 **/*.log
 **/*.smc
 **/*.uncompressed
