@@ -9,6 +9,7 @@ smallest codes to the most common entries, but rather than assigning codes based
 on character, SMC uses a small database of words ranked by commonality. This 
 method is beneficial because it removes the need for translation keys to be sent
 with the messages. 
+
 ---
 ### compressing files with SMC:
 
