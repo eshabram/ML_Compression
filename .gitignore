@@ -2,3 +2,5 @@
 **/*safe_data_copy.txt
 __pycache__/
 **/*.log
+**/*.smc
+**/*.uncompressed

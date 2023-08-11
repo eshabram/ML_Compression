@@ -24,6 +24,8 @@ def loading_animation():
         sys.stdout.flush()
         time.sleep(0.1)
         i += 1
+    print('\n')
+
 
 bits = [8, 16, 24, 32]
 bit_code = ['00', '01', '10', '11']
