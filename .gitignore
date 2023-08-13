@@ -1,7 +1,12 @@
-***/*data.txt
+**/*data.txt
 **/*safe_data_copy.txt
 __pycache__/
 .idea/
 **/*.log
 **/*.smc
 **/*.uncompressed
+*.txt
+*.pdf
+**/*.gz
+temp*
+enwik9

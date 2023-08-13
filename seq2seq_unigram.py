@@ -12,7 +12,8 @@ from huffman import *
 import pdb
 
 # data retreived from https://www.kaggle.com/datasets/rtatman/english-word-frequency?resource=download
-df = pd.read_csv('unigram_freq.csv')
+df = pd.read_csv('data/unigram_freq.csv')
+# df.replace(to_replace='a', value='\n', inplace=True)
 
 def loading_animation():
     cursor_anim = '|/-\\'
@@ -52,13 +53,79 @@ def encode_number(num, bits, bit_code):
     return encoded 
 
 
+def binary_encode_huffman(message, args):
+    # This version of encode aims to encode the max data possible, while
+    # still retaining a large degree of compression.
+            
+    # tokenize words and punctuation (including spaces)
+    tokens = nltk.regexp_tokenize(message, pattern=r' |\n|[a-zA-Z]+|\d+|[^a-zA-Z0-9\s]+')
+    binary_encode = ''
+    huffman_ascii = ''
+    header_key = ''
+
+    for i, token in enumerate(tokens):
+        if len(token) > 1:
+            print(token)
+            key = pd.Series(word_to_key.get(token))
+        else:
+            key = pd.Series()
+            huffman_ascii += token
+        if key.empty:
+            huffman_ascii += token
+            
+    # get dictionaty translation key for tokens NOT in database
+    if len(huffman_ascii) > 0:
+        translation_key = build_huffman_tree(huffman_ascii, None)
+    else:
+        translation_key = dict()
+    
+    for i, token in enumerate(tokens):
+        # currently, single letters are in the dataframe, but we ignore them. 
+        # To preserve capitols, change token.lower() to token, and vice versa
+        if len(token) > 1:
+            key = pd.Series(word_to_key.get(token))
+        else:
+            key = pd.Series()
+        if not key.empty:
+            binary_encode += '1' + str(key.iloc[0])
+        else:
+            # add ascii in bytes. We'll use the leading zero for decode
+            if len(translation_key) > 0:
+                binary_encode += '0' + huffman_encode_chunk(token, translation_key)
+
+    # build header
+    for char, code in translation_key.items():
+        header_key += format(ord(char), '08b') + format(len(code), '04b') + code
+    # header_key= ''.join([translation_key[char] for char in huffman_ascii])
+    
+    header_length = len(header_key)
+    header_num = format(header_length, '016b')
+    header = header_num + header_key
+    binary_encode = header + binary_encode
+    
+    print(translation_key)
+    print(f'Header length: {header_length}')
+    print(f'Header 16 bit number: {header_num}')
+    print(f'Header key: {header_key}')
+    print(f'Binary: {binary_encode}')
+    
+    # Convert binary string to bytes
+    while len(binary_encode) % 8 != 0:
+        binary_encode += '0'
+    
+        
+    binary_encode = bytes(int(binary_encode[i:i+8], 2) \
+                    for i in range(0, len(binary_encode), 8))
+    
+    return binary_encode
+
+
 def binary_encode(message, args):
     # This version of encode aims to encode the max data possible, while
     # still retaining a large degree of compression.
             
     # tokenize words and punctuation (including spaces)
     tokens = nltk.regexp_tokenize(message, pattern=r' |\n|[a-zA-Z]+|\d+|[^a-zA-Z0-9\s]+')
-  
     binary_encode = ''
     huffman = ''
     spaces = ''
@@ -69,10 +136,12 @@ def binary_encode(message, args):
         if ' ' in token:
             for letter in token:
                 # 1 to signal upcoming 2 bit code 11
-                binary_encode += '111'
-                huffman += letter
-                spaces += letter
+                if not args.huffman:
+                    binary_encode += '111'
+                # huffman += letter
+                # spaces += letter
             continue
+        
         # currently, single letters are in the dataframe, but we ignore them. 
         # To preserve capitols, change token.lower() to token, and vice versa
         if len(token) > 1:
@@ -89,8 +158,8 @@ def binary_encode(message, args):
 
     
     # calls the function to convert the current message to SMC + huffman
-    if args.test:
-        binary_encode = huffify(binary_encode)
+    # if args.test:
+    #     binary_encode = huffify(binary_encode)
         
     # Convert binary string to bytes
     while len(binary_encode) % 8 != 0:
@@ -112,68 +181,6 @@ def decode_sequence(sequence, args):
     # get the capitols map if there is one
 #    if sequence[0] == 1:
 #        caps_map = sequence[1:]
-        
-    while idx < len(sequence) and len(sequence) - idx >= 8:
-        num_str = ''
-        if sequence[idx] == '1':
-            idx += 1
-            # Extract the bit code
-            bit_code = sequence[idx:idx+2]
-            idx += 2
-            
-            if bit_code == '11':
-                # deal with spacing
-                message += ' '
-                continue
-
-            # Determine the number of bytes to read based on the bit code
-            num_bytes = bit_code_to_bytes[bit_code]
-    
-            # Read the number and convert to integer
-            for _ in range(num_bytes):
-                if len(sequence) - idx < 8:
-                    break
-                num_str += sequence[idx:idx+8]
-                idx += 8
-                
-            if num_str:
-                index_value = int(num_str, 2)
-                    
-            message += get_word(index_value)
-
-        else:
-            word = ''
-            if len(message) != 0:
-                message + ' '
-            try:
-                while sequence[idx] == '0':
-                    # Convert the 8-bit code to an integer
-                    ascii_code = int(sequence[idx:idx+8], 2)  
-                    # Convert the integer to the corresponding ASCII character
-                    ascii_character = chr(ascii_code)  
-                    word += ascii_character      
-                    idx += 8
-            except IndexError:
-                pass
-            
-            message  += word
-    return message
-
-def huffify(sequence):
-    """ 
-    TODO: 
-    I need to make this function convert the ascii portion of "sequence"
-    to the huffman codes. To do this, I will need to call huffman_encode(sequence, prefix=0)
-    in order to get the translation key. The translation key should likely be
-    appended to the beginning of the message so that it can be read in and saved
-    by the decoder. I will also add a bit the the beginning after I've updated 
-    and returned this sequence in the encode function. This will indicate to the 
-    server that is should be decoded in one of two ways. 
-    """
-    
-    bit_code_to_bytes = {'00': 1, '01': 2, '10': 3, '11': 1}
-    idx = 0
-    message = ''
         
     while idx < len(sequence) and len(sequence) - idx >= 8:
         num_str = ''
@@ -353,7 +360,7 @@ animation_thread.join()
 
 """ 
 -----------------------------------------------
-Description of Advanced Mode:
+Description :
     
 First bit indicates an index value. If the index bit is set to 1, then the next
 two bits are read and interpreted, where 00 idicates only one byte to be read, 
@@ -381,38 +388,13 @@ the translation key.
 1300 is the length of the worst case scenario for when huffman begins to have
 a positive impact. 
 -----------------------------------------------
-00 = 
-01 = capital word
-10 = no space before
-11 = number (when read in, slpit larger numbers and send as multi number bytes.
-             we can give 8 bits for each number, and split numbers bigger than 
-             that to fit a byte by byte scheme)
-   
-11 1 10 0 00 00000001 -> (using this translation key with middle indicator bits,
-                          would represent the number 1 with no space in front. 
-                          This would work nice if number were more commonly used 
-                          1-9 only, but with this scheme we can get much larger 
-                          numbers up over 4 billion, but the real cool thing 
-                          about it would be that if you used commas, then they 
-                          wouldn't have to be that big.)
-   
-or
 
-1 01 0 0000000001 -> (this would be a capital word.)
-0 0000000001 -> (and this would be a lowercase, and we could reuse the other 00 
-                  somewhere else. This would be efficient because capital words
-                  are much less common, and the overhead is only 3 more bits to
-                  achieve a capital word. It does however mean that each word 
-                  will be 1 bit longer, making longer messages a bit larger.)
-   
-000 = word
-001 = cap word
-010 = word no space before
-011 = cap word no space before
-100 = number
-101 = number no space before
-110 =
-111 = 
+1 00 means 1 bytes to be read
+1 01 means 2 bytes to be read
+1 10 means 3 bytes to be read
+1 11 means a space currently
 
+0 currently means the start of an ascii character
+0000000000011010 00100000000100110000100011 000100 000000100110000100011000100000000100110000100011
 
 """

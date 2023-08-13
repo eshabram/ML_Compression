@@ -1,8 +1,19 @@
 import socket
 import argparse
 import pdb
+import gzip
 from seq2seq_unigram import *
 from huffman import huffman_encode
+import PyPDF2
+
+def extract_text_from_pdf(pdf_path):
+    text = ""
+    with open(pdf_path, "rb") as pdf_file:
+        pdf_reader = PyPDF2.PdfReader(pdf_file)
+        for page_num in range(len(pdf_reader.pages)):
+            page = pdf_reader.pages[page_num]
+            text += page.extract_text()
+    return text
 
 def run_client(args):
     print('\n')
@@ -22,8 +33,11 @@ def run_client(args):
                 return len(binary_data) + pad
             
             if args.filepath is not None:
-                with open(args.filepath, 'r') as file:
-                    message = file.read()
+                if args.pdf:
+                    message = extract_text_from_pdf(args.filepath)
+                else:
+                    with open(args.filepath, 'r') as file:
+                        message = file.read()
             else:
                 # get message and encode
                 message = input('Enter message: ')
@@ -63,12 +77,29 @@ def run_client(args):
                 perc_both = (bin_length - (after_space_encode - encoded_len)) / ascii_length * 100
                 print(f'SMC + Huffman potentially: {perc_both:.3g}% of original size.')
             
-            # get huffman coded length of message
+            # SMC with huffman
             if args.huffman:
-                huff_len = len(huffman_encode(message))
-                print(f'% of original - Huf: {(huff_len / ascii_length) * 100:.3g}%')
-            print('\n')
+                huff_encode = binary_encode_huffman(message, args)
+                encode_len = len(huff_encode) * 8
+                print(f'SMC + Huffman: {encode_len / ascii_length * 100:.3g}%')
             
+            # gzip testing
+            if args.gzip:
+                with gzip.open('temp.gz', 'wb') as f:
+                    f.write(huffman.encode('utf-8'))
+                temp_size_bytes = os.path.getsize('temp.gz')
+                temp_len = temp_size_bytes * 8
+                huff_len = len(huffman) * 8
+                msg = (bin_length - (huff_len - temp_len))
+                subtract = huff_len - temp_len
+                print(f'huffman length: {huff_len}')
+                print(f'Temp length: {temp_len}')
+                print(f'New Length: {msg}')
+                print(f'With gzip: {msg / ascii_length * 100:.3g}%')
+                print(f'Huff length + temp: {(len(huffman_encode(huffman)) + bin_length) / ascii_length * 100:.3g}%')
+            
+            print('\n')
+
             # Send binary data over the network
             HOST = 'localhost'  # Replace with the server's IP address
             PORT = 12345        # Replace with the desired port number
@@ -95,9 +126,13 @@ if __name__ == "__main__":
                         action="store_true", help="Measure message against Huffman coding.")
     parser.add_argument("-f", "--filepath", action="store", const=None, type=str, nargs="?")
     parser.add_argument("-s", "--supercompress", \
-                        action="store_true", help="Enable advanced mode.")
+                        action="store_true", help="Enable supercompress mode.")
     parser.add_argument("-t", "--test", \
-                        action="store_true", help="Enable advanced mode.")
+                        action="store_true", help="Enable test mode.")
+    parser.add_argument("-g", "--gzip", \
+                        action="store_true", help="Use gzip compression.")
+    parser.add_argument("-p", "--pdf", \
+                        action="store_true", help="Read in pdf as input")
     
     args = parser.parse_args()
     run_client(args)
