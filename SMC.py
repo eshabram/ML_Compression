@@ -1,6 +1,6 @@
 import argparse
 import pdb
-from seq2seq_unigram import binary_encode, decode_sequence, loading_animation
+from seq2seq_unigram import *
 from huffman import *
 import os
 import threading
@@ -41,7 +41,7 @@ def get_filename_without_extension(file_path):
 def compress(args):
     file_name = get_filename_without_extension(args.filepath)
     
-    if args.pdf:
+    if args.filepath[-3:] == 'pdf':
         file_content = extract_text_from_pdf(args.filepath)
         encoded_data = binary_encode(file_content, args)
     else:
