@@ -43,11 +43,11 @@ def compress(args):
     
     if args.pdf:
         file_content = extract_text_from_pdf(args.filepath)
-        encoded_data, nothing, morenothing = binary_encode(file_content, args)
+        encoded_data = binary_encode(file_content, args)
     else:
         with open(args.filepath, 'r') as file:
             file_content = file.read()
-            encoded_data, nothing, morenothing = binary_encode(file_content, args)
+            encoded_data = binary_encode(file_content, args)
 
     # Apped '.smc' extension
     file_directory, file_name_with_extension = os.path.split(args.filepath)
@@ -70,7 +70,6 @@ def decompress(args):
     with open(args.filepath, 'rb') as file:
         file_data = file.read()
         file_content = ''.join(format(byte, '08b') for byte in file_data)
-        pdb.set_trace()
         decoded_data = decode_sequence(file_content, args)
         if args.filepath[-7:-4] == 'pdf':
             decoded_data = create_pdf_from_text(decoded_data)
