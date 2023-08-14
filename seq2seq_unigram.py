@@ -178,7 +178,7 @@ def binary_encode(message, args):
     binary_encode = bytes(int(binary_encode[i:i+8], 2) \
                     for i in range(0, len(binary_encode), 8))
     # binary_encode = caps_map + binary_encode
-    return binary_encode, huffman, spaces
+    return binary_encode
 
 
 def decode_sequence(sequence, args):

@@ -2,6 +2,7 @@ import socket
 import argparse
 import pdb
 import gzip
+import os
 from seq2seq_unigram import *
 from huffman import huffman_encode
 import PyPDF2
@@ -48,7 +49,7 @@ def run_client(args):
             elif args.huffman:
                 binary_string = binary_encode_huffman(message, args)
             else:
-                binary_string, huffman, spaces = binary_encode(message, args)
+                binary_string = binary_encode(message, args)
             if args.verbose:
                 bin_data = ''.join(format(byte, '08b') for byte in binary_string)
                 if len(binary_string) > 100:
@@ -64,24 +65,17 @@ def run_client(args):
 
             print(f'Message before compression: {ascii_length} bits')
             print(f'% of original - SMC: {bin_length / ascii_length * 100:.3g}%')
-            print(f'Huffman only: {huffman_only / ascii_length * 100:.3g}%')
+            print(f'% of original - huf: {huffman_only / ascii_length * 100:.3g}%')
             
             
             # gzip testing
             if args.gzip:
                 with gzip.open('temp.gz', 'wb') as f:
-                    f.write(huffman.encode('utf-8'))
+                    f.write(message.encode('utf-8'))
                 temp_size_bytes = os.path.getsize('temp.gz')
                 temp_len = temp_size_bytes * 8
-                huff_len = len(huffman) * 8
-                msg = (bin_length - (huff_len - temp_len))
-                subtract = huff_len - temp_len
-                print(f'huffman length: {huff_len}')
-                print(f'Temp length: {temp_len}')
-                print(f'New Length: {msg}')
-                print(f'With gzip: {msg / ascii_length * 100:.3g}%')
-                print(f'Huff length + temp: {(len(huffman_encode(huffman)) + bin_length) / ascii_length * 100:.3g}%')
-            
+                print(f'% of original -  gz: {temp_len / ascii_length * 100:.3g}%')
+                os.remove('temp.gz')
             print('\n')
 
             # Send binary data over the network
