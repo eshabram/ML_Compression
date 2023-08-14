@@ -59,23 +59,25 @@ def binary_encode_huffman(message, args):
             
     # tokenize words and punctuation (including spaces)
     tokens = nltk.regexp_tokenize(message, pattern=r' |\n|[a-zA-Z]+|\d+|[^a-zA-Z0-9\s]+')
-    binary_encode = ''
+    binary_string = ''
     huffman_ascii = ''
     header_key = ''
+    no_huff = False
+    group = False
 
     for i, token in enumerate(tokens):
         if len(token) > 1:
-            print(token)
             key = pd.Series(word_to_key.get(token))
         else:
             key = pd.Series()
             huffman_ascii += token
         if key.empty:
             huffman_ascii += token
-            
+    if len(huffman_ascii) < 1:
+        no_huff = True
     # get dictionaty translation key for tokens NOT in database
     if len(huffman_ascii) > 0:
-        translation_key = build_huffman_tree(huffman_ascii, None)
+        translation_key = build_huffman_tree(huffman_ascii, '1')
     else:
         translation_key = dict()
     
@@ -87,37 +89,45 @@ def binary_encode_huffman(message, args):
         else:
             key = pd.Series()
         if not key.empty:
-            binary_encode += '1' + str(key.iloc[0])
+            binary_string += '1' + str(key.iloc[0])
+            group = False
         else:
             # add ascii in bytes. We'll use the leading zero for decode
             if len(translation_key) > 0:
-                binary_encode += '0' + huffman_encode_chunk(token, translation_key)
+                if not group:
+                    binary_string += '0' + huffman_encode_chunk(token, translation_key)
+                    group = True
+                else:
+                    binary_string += huffman_encode_chunk(token, translation_key)
 
     # build header
     for char, code in translation_key.items():
         header_key += format(ord(char), '08b') + format(len(code), '04b') + code
-    # header_key= ''.join([translation_key[char] for char in huffman_ascii])
     
-    header_length = len(header_key)
-    header_num = format(header_length, '016b')
-    header = header_num + header_key
-    binary_encode = header + binary_encode
+    if no_huff:
+        binary_string = '1' + binary_string
+    else:
+        header_length = len(header_key)
+        header_num = format(header_length, '016b')
+        pad_num = (8 - (len(binary_string) + len(header_key) + 3) % 8) % 8
+        pad_str = str('{0:03b}'.format(pad_num))
+        header = header_num + pad_str + header_key
+        binary_string = header + binary_string
     
-    print(translation_key)
-    print(f'Header length: {header_length}')
-    print(f'Header 16 bit number: {header_num}')
-    print(f'Header key: {header_key}')
-    print(f'Binary: {binary_encode}')
+        # print(translation_key)
+        # print(f'Header length: {header_length}')
+        # print(f'Header 16 bit number: {header_num}')
+        # print(f'Header key: {header_key}')
+        # print(f'Binary: {binary_string}')
+        # print(f'Padding: {pad_str}')
     
     # Convert binary string to bytes
-    while len(binary_encode) % 8 != 0:
-        binary_encode += '0'
+    while len(binary_string) % 8 != 0:
+        binary_string += '0'
+    binary_string = bytes(int(binary_string[i:i+8], 2) \
+                    for i in range(0, len(binary_string), 8))
     
-        
-    binary_encode = bytes(int(binary_encode[i:i+8], 2) \
-                    for i in range(0, len(binary_encode), 8))
-    
-    return binary_encode
+    return binary_string
 
 
 def binary_encode(message, args):
@@ -126,7 +136,7 @@ def binary_encode(message, args):
             
     # tokenize words and punctuation (including spaces)
     tokens = nltk.regexp_tokenize(message, pattern=r' |\n|[a-zA-Z]+|\d+|[^a-zA-Z0-9\s]+')
-    binary_encode = ''
+    binary_encode = '1'
     huffman = ''
     spaces = ''
     
@@ -178,10 +188,34 @@ def decode_sequence(sequence, args):
     bit_code_to_bytes = {'00': 1, '01': 2, '10': 3, '11': 1}
     idx = 0
     message = ''
-    # get the capitols map if there is one
-#    if sequence[0] == 1:
-#        caps_map = sequence[1:]
-        
+    huffman_key = dict()
+    decoding_dict = dict()
+    huffman = False
+    
+    # extract the huffman translation key
+    if sequence[0] == '0':
+        huffman = True
+        huffman_key_len = int(sequence[:16], 2)
+        pad_len = int(sequence[16:19], 2)
+        print(f'Padding: {sequence[16:19]}')
+        if pad_len > 0:
+            sequence = sequence[:-pad_len]
+        print(sequence)
+        idx += 19
+        while idx < huffman_key_len + 19:
+            ascii_char = chr(int(sequence[idx:idx+8], 2))
+            idx += 8
+            code_len = int(sequence[idx:idx+4], 2)
+            idx += 4
+            code = sequence[idx:idx+code_len]
+            decoding_dict.update({code:ascii_char})
+            idx += code_len
+        print(decoding_dict)
+        # A reverse lookup table for huffman coded characters
+        # decoding_dict = {code: char for char, code in huffman_key.items()}
+        longest_key_len = max(map(len, decoding_dict.keys()))
+    else:
+        idx += 1
     while idx < len(sequence) and len(sequence) - idx >= 8:
         num_str = ''
         if sequence[idx] == '1':
@@ -207,23 +241,37 @@ def decode_sequence(sequence, args):
                 
             if num_str:
                 index_value = int(num_str, 2)
-                    
             message += get_word(index_value)
-
         else:
-            word = ''
-            if len(message) != 0:
-                message + ' '
-            try:
-                while sequence[idx] == '0':
-                    # Convert the 8-bit code to an integer
-                    ascii_code = int(sequence[idx:idx+8], 2)  
-                    # Convert the integer to the corresponding ASCII character
-                    ascii_character = chr(ascii_code)  
-                    word += ascii_character      
-                    idx += 8
-            except IndexError:
-                pass
+            # this is where we decipher the huffman codes
+            if huffman: 
+                idx += 1
+                count = 1
+                word = ''
+                # since the length is not included, we incrementally grow the 
+                # bit string to match the next code. This works because of the
+                # unique prefixing of Huffman codes.
+                while len(sequence[idx:idx+count]) <= longest_key_len and idx+count <= len(sequence):
+                    if sequence[idx:idx+count] in decoding_dict:
+                        word += decoding_dict[sequence[idx:idx+count]]
+                        idx += count
+                        count = 1
+                    else:
+                        count += 1
+            else:
+                word = ''
+                if len(message) != 0:
+                    message + ' '
+                try:
+                    while sequence[idx] == '0':
+                        # Convert the 8-bit code to an integer
+                        ascii_code = int(sequence[idx:idx+8], 2)  
+                        # Convert the integer to the corresponding ASCII character
+                        ascii_character = chr(ascii_code)  
+                        word += ascii_character      
+                        idx += 8
+                except IndexError:
+                    pass
             
             message  += word
     return message
@@ -356,45 +404,3 @@ df = pd.concat([df, ascii_df], ignore_index=True)
 animation_event.set()
 animation_thread.join()
 
-
-
-""" 
------------------------------------------------
-Description :
-    
-First bit indicates an index value. If the index bit is set to 1, then the next
-two bits are read and interpreted, where 00 idicates only one byte to be read, 
-01 indicates two, 10 indicates three, and 11 incidates a space. If the first bit
-is a 0, then the next 7 bits is encoded as the ascii character representation. 
-In this way, the message can be, at largest, 100% the size of the original 
-message. This is currently how capitol letters are dealt with, but may change 
-in the future (perhaps to a capitols map).
-
-
-NOTE: I could add a bit after 1 11 for a space to always be read and have it 
-represent either a space or a newline. Then the question would be, how many 
-spaces per line? If it were 8 spaces per newline character on average, then the
-newline char might benefit from the added functionality, but otherwise it would
-make the message bigger. We may be better off going with adding the "\n" to the 
-dictionary.   
-
-IDEA: Since the advanced encoding deals more with text of all kinds, including 
-newlines and things such as python code, then it would be a good idea to integrate
-Huffman encoding for the ascii character after a certain point. I say after a 
-certain point because small messages like "How are you?" have a negative benefit 
-from Huffman encoding due to lack of duplicate characters and the inclusion of
-the translation key. 
-
-1300 is the length of the worst case scenario for when huffman begins to have
-a positive impact. 
------------------------------------------------
-
-1 00 means 1 bytes to be read
-1 01 means 2 bytes to be read
-1 10 means 3 bytes to be read
-1 11 means a space currently
-
-0 currently means the start of an ascii character
-0000000000011010 00100000000100110000100011 000100 000000100110000100011000100000000100110000100011
-
-"""

@@ -45,6 +45,8 @@ def run_client(args):
                 continue
             if args.lossy:
                 binary_string = binary_encode_lossy(message, args)
+            elif args.huffman:
+                binary_string = binary_encode_huffman(message, args)
             else:
                 binary_string, huffman, spaces = binary_encode(message, args)
             if args.verbose:
@@ -62,26 +64,6 @@ def run_client(args):
 
             print(f'Message before compression: {ascii_length} bits')
             print(f'% of original - SMC: {bin_length / ascii_length * 100:.3g}%')
-            if args.supercompress and len(huffman) != 0:
-                huff_encode = huffman_encode(huffman)                
-                huffman_len = len(huffman) * 8
-                encoded_len = len(huff_encode)
-                # subtract 5 bits for every space to compensate for 111 code
-                after_space_encode = (huffman_len - (len(spaces) * 5))
-                improvement = encoded_len / after_space_encode
-                print('---------------------------Huffman----------------------------')
-                print(f'ASCII bits length: {huffman_len}')
-                print(f'ASCII after spc encode: {after_space_encode}')
-                print(f'huff bits length: {encoded_len}')
-                print(f'Potential Improvement: {100 - improvement * 100:.3g}%')
-                perc_both = (bin_length - (after_space_encode - encoded_len)) / ascii_length * 100
-                print(f'SMC + Huffman potentially: {perc_both:.3g}% of original size.')
-            
-            # SMC with huffman
-            if args.huffman:
-                huff_encode = binary_encode_huffman(message, args)
-                encode_len = len(huff_encode) * 8
-                print(f'SMC + Huffman: {encode_len / ascii_length * 100:.3g}%')
             
             # gzip testing
             if args.gzip:
@@ -125,8 +107,7 @@ if __name__ == "__main__":
     parser.add_argument("--huffman", \
                         action="store_true", help="Measure message against Huffman coding.")
     parser.add_argument("-f", "--filepath", action="store", const=None, type=str, nargs="?")
-    parser.add_argument("-s", "--supercompress", \
-                        action="store_true", help="Enable supercompress mode.")
+
     parser.add_argument("-t", "--test", \
                         action="store_true", help="Enable test mode.")
     parser.add_argument("-g", "--gzip", \

@@ -4,7 +4,7 @@ import argparse
 import pdb
 
 
-def build_huffman_tree(message, reserved_prefix='0'):
+def build_huffman_tree(message, reserved_prefix=None): # reserved_prefix is a string (1s and 0s only)
     freq = Counter(message)
     
     if len(freq) == 1:  # Added line
