@@ -60,10 +60,12 @@ def run_client(args):
             bin_length = len(binary_string) * 8
             print(f'Bin_length: {bin_length}')
             ascii_length = len(message) * 8
-
+            huffman_only = len(huffman_encode(message))
 
             print(f'Message before compression: {ascii_length} bits')
             print(f'% of original - SMC: {bin_length / ascii_length * 100:.3g}%')
+            print(f'Huffman only: {huffman_only / ascii_length * 100:.3g}%')
+            
             
             # gzip testing
             if args.gzip:
