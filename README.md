@@ -1,36 +1,14 @@
 # SMC Compression:
 
-Small Message Coding compression (SMC) is a compression algorithm designed 
-specifically for messaging with real time compression. Conventional compression algorithms 
-typically lack the ability to compress short text due to the inclusion
-of translation keys, reliance on repetative characters, and various other reasons. 
+Small Message Coding (SMC) is a lossless compression algorithm designed 
+specifically for messaging with real time compression in mind. Conventional compression 
+algorithms typically lack the ability to compress short text due to the inclusion
+of translation keys and reliance on repetative characters.
 SMC works similarly to Huffman coding, in that the goal is to assign the 
 smallest codes to the most common entries, but rather than assigning codes based 
 on character, SMC uses a small database of words ranked by commonality. This 
 method is beneficial because it removes the need for translation keys to be sent
-with the messages. 
-
----
-### compressing files with SMC:
-
-To compress a file with SMC simply run SMC.py located in the main directory as such:
-
-```
-python3 SMC.py <file path>
-```
-
-This will create a file in the same directory as the file being compressed with 
-the same name, but ending in the .smc file extension. That extension will be 
-necessary to run the decode, though there is a --force option for convenience.
-Run the decompressor as such:
-
-```
-python3 SMC.py -d <.smc file path>
-``` 
-
-The -d flag specifies --decompression, which makes sure that the file is a .smc 
-file unless the --force argument is used. This command will generate a .uncompressed
-version of the .smc file with the same name and location.
+with the messages.
 
 ---
 ### Using the client and server with compression:
@@ -57,6 +35,35 @@ If your server.py is already running in the default mode, then you do not need t
 rerun the script. It will read it in just fine. 
 
 ---
+### compressing files with SMC:
+
+There is also an option to use SMC to compress and decompress files.
+To compress a file with SMC simply run SMC.py located in the main directory as such:
+
+```
+python3 SMC.py <file path>
+```
+
+This will create a file in the same directory as the file being compressed with 
+the same name, but ending in the .smc file extension. That extension will be 
+necessary to run the decode, though there is a --force option for convenience.
+Run the decompressor as such:
+
+```
+python3 SMC.py -d <.smc file path>
+``` 
+
+The -d flag specifies --decompression, which makes sure that the file is a .smc 
+file unless the --force argument is used. This command will generate a .uncompressed
+version of the .smc file with the same name and location.
+
+NOTE: Since SMC was designed for small messages, it is not ideal for large file
+compression, but with the includion of a simple huffman scheme, it does okay against
+other compression algorithms such as gzip. In general, gzip beats the heck out of
+SMC for file compression, but there is plenty of room for optimization, and perhaps 
+this can be expanded upon in further research.  
+
+---
 ### Lossy mode:
 
 Running both client and server script with the -l flag will initiate the 
@@ -69,7 +76,8 @@ emergency communication.
 ---
 
 That's it. If you'd like to verify that the data is the size specified, you can 
-run wireshark and capture one of the TCP packets and find the "payload" or "data". 
+run wireshark and capture one of the TCP packets and find the "payload" or "data", 
+or you can compress a file using SMC.py. 
 Have fun!
 ![Alt text](figures/wireshark_payload.png)
 
