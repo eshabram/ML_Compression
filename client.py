@@ -6,7 +6,42 @@ import os
 from seq2seq_unigram import *
 from huffman import huffman_encode
 import PyPDF2
+import logging
 
+def custom_log(text_size_bits, smc_improvement, smc_huffman_improvement, huffman_improvement, gzip_improvement, level=logging.INFO):
+    extra = {
+        'Text_Size_Bits': text_size_bits,
+        'SMC_improvement': smc_improvement,
+        'SMC_Huffman_Improvement': smc_huffman_improvement,
+        'Huffman_Improvement': huffman_improvement,
+        'Gzip_Improvement': gzip_improvement
+    }
+    logger = logging.getLogger('SMC_logger')
+    logger.log(level, '', extra=extra)
+
+
+def setup_logger():
+    log_file = 'data/log.csv'
+    header = 'timestamp,log_level,Text Size (bits),SMC Improvement,SMC Huffman Improvment,'\
+        'Huffman Improvement,Gzip Improvement'
+    # Check if the log file exists and write the header if it's new
+    if not os.path.exists(log_file):
+        with open(log_file, 'w') as f:
+            f.write(header + '\n')
+
+    # Define the CSV structure
+    log_format = '%(asctime)s,%(levelname)s,%(Text_Size_Bits)d,%(SMC_improvement)f,%(SMC_Huffman_Improvement)f,'\
+        '%(Huffman_Improvement)f,%(Gzip_Improvement)f'
+
+    # Setup the logger
+    logging.basicConfig(
+        filename=log_file,
+        level=logging.DEBUG,  # Set the minimum log level
+        format=log_format,
+        filemode='a'  # Set the file mode (append mode)
+    )
+    logger = logging.getLogger('SMC_logger')
+    
 def extract_text_from_pdf(pdf_path):
     text = ""
     with open(pdf_path, "rb") as pdf_file:
@@ -20,19 +55,6 @@ def run_client(args):
     print('\n')
     while True:
         try:
-            def read_bin(binary_data):
-                pad = 0
-                binary_data = "".join(str(bit) for bit in binary_string)
-                if len(binary_data) % 8 != 0:
-                    pad = 8 - len(binary_data)
-                if args.verbose:
-                    if len(binary_data) > 100:
-                        print(f'Binary data: ...{binary_data[-100:]}')
-                    else:
-                        print(f'Binary data: {binary_data}')
-                print(f'Binary length = {len(binary_data)} + {pad} padding')
-                return len(binary_data) + pad
-            
             if args.filepath is not None:
                 if args.pdf:
                     message = extract_text_from_pdf(args.filepath)
@@ -50,32 +72,38 @@ def run_client(args):
                 binary_string = binary_encode_huffman(message, args)
             else:
                 binary_string = binary_encode(message, args)
+            
+            # test mode runs all encodes and logs the data, and sends SMC_only
+            if args.test:
+                SMC_huffman = binary_encode_huffman(message, args)
+                huffman_only = huffman_encode(message)
+                with gzip.open('temp.gz', 'wb') as f:
+                    f.write(message.encode('utf-8'))
+                temp_size_bytes = os.path.getsize('temp.gz')
+                temp_len = temp_size_bytes * 8
+                os.remove('temp.gz')
+            bin_data = ''.join(format(byte, '08b') for byte in binary_string)
+    
             if args.verbose:
-                bin_data = ''.join(format(byte, '08b') for byte in binary_string)
                 if len(binary_string) > 100:
                     print(f'Binary string: ...{bin_data[-100:]}')
                 else:
                     print(f'Binary string: {bin_data}')
             
             
-            bin_length = len(binary_string) * 8
-            print(f'Bin_length: {bin_length}')
+            SMC_length = len(bin_data)
             ascii_length = len(message) * 8
-            huffman_only = len(huffman_encode(message))
-
+            print(f'SMC length: {SMC_length}')
             print(f'Message before compression: {ascii_length} bits')
-            print(f'% of original - SMC: {bin_length / ascii_length * 100:.3g}%')
-            print(f'% of original - huf: {huffman_only / ascii_length * 100:.3g}%')
-            
-            
-            # gzip testing
-            if args.gzip:
-                with gzip.open('temp.gz', 'wb') as f:
-                    f.write(message.encode('utf-8'))
-                temp_size_bytes = os.path.getsize('temp.gz')
-                temp_len = temp_size_bytes * 8
+            print(f'% of original - SMC: {SMC_length / ascii_length * 100:.3g}%')
+
+            if args.test:
+                SMC_huff_len = len(SMC_huffman) * 8
+                huff_len = len(huffman_only) 
+                print(f'% of original - S+H: {SMC_huff_len / ascii_length * 100:.3g}%')
+                print(f'% of original - huf: {huff_len / ascii_length * 100:.3g}%')
                 print(f'% of original -  gz: {temp_len / ascii_length * 100:.3g}%')
-                os.remove('temp.gz')
+
             print('\n')
 
             # Send binary data over the network
@@ -106,10 +134,10 @@ if __name__ == "__main__":
 
     parser.add_argument("-t", "--test", \
                         action="store_true", help="Enable test mode.")
-    parser.add_argument("-g", "--gzip", \
-                        action="store_true", help="Use gzip compression.")
     parser.add_argument("-p", "--pdf", \
                         action="store_true", help="Read in pdf as input")
+        
+    setup_logger()
     
     args = parser.parse_args()
     run_client(args)

@@ -1,7 +1,7 @@
 # SMC Compression:
 
-Small Message Coding compression (SMC) is a compression algorithm designed for 
-both short text messages, and large files. Conventional compression algorithms 
+Small Message Coding compression (SMC) is a compression algorithm designed 
+specifically for messaging with real time compression. Conventional compression algorithms 
 typically lack the ability to compress short text due to the inclusion
 of translation keys, reliance on repetative characters, and various other reasons. 
 SMC works similarly to Huffman coding, in that the goal is to assign the 
