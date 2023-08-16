@@ -81,3 +81,10 @@ or you can compress a file using SMC.py.
 Have fun!
 ![Alt text](figures/wireshark_payload.png)
 
+Data for word frequencey retrieved from:
+https://www.kaggle.com/datasets/rtatman/english-word-frequency?resource=download
+
+Human conversation dataset used for testing retrieved from:
+https://www.kaggle.com/datasets/projjal1/human-conversation-training-data
+
+

@@ -11,7 +11,6 @@ from nltk.tokenize import word_tokenize
 from huffman import *
 import pdb
 
-# data retreived from https://www.kaggle.com/datasets/rtatman/english-word-frequency?resource=download
 df = pd.read_csv('data/unigram_freq.csv')
 # df.replace(to_replace='a', value='\n', inplace=True)
 
@@ -113,7 +112,8 @@ def binary_encode_huffman(message, args):
         pad_str = str('{0:03b}'.format(pad_num))
         header = header_num + pad_str + header_key
         binary_string = header + binary_string
-    
+        
+        # some helpful debigging print statements 
         # print(translation_key)
         # print(f'Header length: {header_length}')
         # print(f'Header 16 bit number: {header_num}')
