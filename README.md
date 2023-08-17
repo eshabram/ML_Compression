@@ -20,6 +20,7 @@ at the bottom of this readme was used in running tests for the collecting of thi
 data. The plot illustrates SMC effectiveness for small messaging. Note that below 
 the dashed line represents a negative compression rate, meaning that the messages
 actually get larger.
+
 ![Compression Comparison](figures/Compression_Comparison.png)
 
 The very right of the plot represents the bit equivalent to 280 characters, which
