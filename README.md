@@ -53,7 +53,7 @@ If your server.py is already running in the default mode, then you do not need t
 rerun the script. It will read it in just fine. 
 
 ---
-### compressing files with SMC:
+### Compressing files with SMC:
 
 There is also an option to use SMC to compress and decompress files.
 To compress a file with SMC simply run SMC.py located in the main directory as such:
@@ -92,11 +92,26 @@ compression. This mode can be useful for low baud rate situation, and/or
 emergency communication. 
 
 ---
+### Recreating data:
+
+If you would like to recreate the experiments and generate new data, simply run
+the process_data.py like so:
+
+```
+python2 process_data.py -t
+```
+
+This will generate a file in the data/ folder named 'log.csv' containing Information
+for tests run on each line of the human conversation dataset. You can run the script
+again without the -t flag to generate the plot at the top of this readme.
+
+---
 
 That's it. If you'd like to verify that the data is the size specified, you can 
 run wireshark and capture one of the TCP packets and find the "payload" or "data", 
 or you can compress a file using SMC.py. 
 Have fun!
+
 ![wireshark](figures/wireshark_payload.png)
 
 Data for word frequencey retrieved from:

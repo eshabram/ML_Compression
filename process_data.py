@@ -38,31 +38,39 @@ def run_tests(args):
 def run_plot(args):
     df = pd.read_csv('data/log.csv')
     df.columns    
-    df['Text Size (bytes)'] = df['Text Size (bits)'] * 8
+
     # Subset the DataFrame and filter text sizes within a specific range
-    df_plot = df[(df['Text Size (bytes)'] >= 0) & (df['Text Size (bytes)'] <= 280)]
-    df_plot = df_plot[['Text Size (bytes)', 'SMC Ratio','SMC + Huffman Ratio', 'Huffman Ratio', 'Gzip Ratio']]    
+    df_plot = df[(df['Text Size (bits)'] >= 0) & (df['Text Size (bits)'] <= 2240)]
+    df_plot = df_plot[['Text Size (bits)', 'SMC Ratio','SMC + Huffman Ratio', 'Huffman Ratio', 'Gzip Ratio']]    
+    df_plot['Text Size (bits)'].max()
     # Calculate mean ratios for each column
-    mean_ratios = df_plot.groupby('Text Size (bytes)').mean()
+    mean_ratios = df_plot.groupby('Text Size (bits)').mean()
     # Reset index to make 'Text Size (bits)' a regular column
     mean_ratios = mean_ratios.reset_index()
     
     # Set the style using Seaborn
-    # sns.set(style="whitegrid")
+    sns.set(style="whitegrid")
     
     # Create the line plot using Seaborn
     plt.figure(figsize=(12, 6))  # Set the figure size
-    sns.lineplot(data=mean_ratios, x='Text Size (bytes)', y='SMC Ratio', label='SMC Ratio')
-    sns.lineplot(data=mean_ratios, x='Text Size (bytes)', y='SMC + Huffman Ratio', label='SMC + Huffman Ratio')
-    sns.lineplot(data=mean_ratios, x='Text Size (bytes)', y='Huffman Ratio', label='Huffman Ratio')
-    sns.lineplot(data=mean_ratios, x='Text Size (bytes)', y='Gzip Ratio', label='Gzip Ratio')
+    sns.lineplot(data=mean_ratios, x='Text Size (bits)', y='SMC Ratio', label='SMC Ratio')
+    sns.lineplot(data=mean_ratios, x='Text Size (bits)', y='SMC + Huffman Ratio', label='SMC + Huffman Ratio')
+    sns.lineplot(data=mean_ratios, x='Text Size (bits)', y='Huffman Ratio', label='Huffman Ratio')
+    sns.lineplot(data=mean_ratios, x='Text Size (bits)', y='Gzip Ratio', label='Gzip Ratio')
     
     # Set title and labels
     plt.title('Comparison of Compression Ratios by Text Size')
-    plt.xlabel('Text Size (bytes)')
+    plt.xlabel('Text Size (bits)')
     plt.ylabel('Mean Ratios')
     plt.ylim(-1, 1)  # Adjust these limits based on your data range
     plt.axhline(y=0, color='gray', linestyle='dashed')
+    
+    # Get the minimum and maximum text size values for x-axis limits
+    min_text_size = df_plot['Text Size (bits)'].min()
+    max_text_size = df_plot['Text Size (bits)'].max()
+    
+    # Set x-axis limits to match the edge of the data
+    plt.xlim(min_text_size, max_text_size)
     # Display legend
     plt.legend(loc='lower right')
     
