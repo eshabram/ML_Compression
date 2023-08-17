@@ -1,6 +1,7 @@
 from collections import Counter
 import heapq
 import argparse
+from utils import *
 import pdb
 
 
@@ -137,16 +138,6 @@ def huffman_encode_7bit(message, prefix=None):
     encoded_message = ''.join([huff_dict[char] for char in message])
     
     return format(len(header), '016b') + header + encoded_message
-
-
-def file_to_binary_string(file_path):
-    binary_string = ''
-    with open(file_path, 'rb') as file:
-        byte = file.read(1)
-        while byte:
-            binary_string += format(ord(byte), '08b')  # 8-bit representation of each byte
-            byte = file.read(1)
-    return binary_string
 
 
 if __name__ == '__main__':

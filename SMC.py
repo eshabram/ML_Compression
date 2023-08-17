@@ -2,45 +2,15 @@ import argparse
 import pdb
 from seq2seq_unigram import *
 from huffman import *
+from utils import *
 import os
 import threading
-import PyPDF2
-
-def extract_text_from_pdf(pdf_path):
-    text = ""
-    with open(pdf_path, "rb") as pdf_file:
-        pdf_reader = PyPDF2.PdfReader(pdf_file)
-        for page_num in range(len(pdf_reader.pages)):
-            page = pdf_reader.pages[page_num]
-            text += page.extract_text()
-    return text
-
-def create_pdf_from_text(text, output_path):
-    pdf_writer = PyPDF2.PdfWriter()
-    pdf_writer.add_page()
-    
-    page = pdf_writer.pages[0]
-    page.merge_page(PyPDF2.pdf.PageObject.create_text_object(text))
-    
-    with open(output_path, "wb") as output_pdf:
-        pdf_writer.write(output_pdf)
-
-
-def get_filename_without_extension(file_path):
-    """
-    This function gets the name of the file without its path and file
-    extension. This may be useful for making a file in another location, and
-    linking it after the write is complete to avoid using the file before it is
-    done decompressing.
-    """
-    base_name = os.path.basename(file_path)  
-    file_name, _ = os.path.splitext(base_name)
-    return file_name
 
 
 def compress(args):
     file_name = get_filename_without_extension(args.filepath)
     
+    """Pdf """
     if args.filepath[-3:] == 'pdf':
         file_content = extract_text_from_pdf(args.filepath)
         encoded_data = binary_encode(file_content, args)

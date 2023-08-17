@@ -2,6 +2,7 @@ import socket
 import argparse
 from seq2seq_unigram import *
 from huffman import *
+from utils import *
 
 HOST = 'localhost'  # Replace with the server's IP address
 PORT = 12345        # Replace with the desired port number

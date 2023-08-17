@@ -5,51 +5,9 @@ import gzip
 import os
 from seq2seq_unigram import *
 from huffman import huffman_encode
-import PyPDF2
+from utils import *
 import logging
 
-def custom_log(text_size_bits, smc_ratio, smc_huffman_ratio, huffman_ratio, gzip_ratio, level=logging.INFO):
-    extra = {
-        'Text_Size_Bits': text_size_bits,
-        'SMC_Ratio': smc_ratio,
-        'SMC_Huffman_Ratio': smc_huffman_ratio,
-        'Huffman_Ratio': huffman_ratio,
-        'Gzip_Ratio': gzip_ratio
-    }
-    logger = logging.getLogger('SMC_logger')
-    logger.log(level, '', extra=extra)
-
-
-def setup_logger():
-    log_file = 'data/log.csv'
-    header = 'timestamp,log_level,Text Size (bits),SMC Ratio,SMC + Huffman Ratio,'\
-        'Huffman Ratio,Gzip Ratio'
-    # Check if the log file exists and write the header if it's new
-    if not os.path.exists(log_file):
-        with open(log_file, 'w') as f:
-            f.write(header + '\n')
-
-    # Define the CSV structure
-    log_format = '%(asctime)s,%(levelname)s,%(Text_Size_Bits)d,%(SMC_Ratio)f,%(SMC_Huffman_Ratio)f,'\
-        '%(Huffman_Ratio)f,%(Gzip_Ratio)f'
-
-    # Setup the logger
-    logging.basicConfig(
-        filename=log_file,
-        level=logging.DEBUG,  # Set the minimum log level
-        format=log_format,
-        filemode='a'  # Set the file mode (append mode)
-    )
-    logger = logging.getLogger('SMC_logger')
-    
-def extract_text_from_pdf(pdf_path):
-    text = ""
-    with open(pdf_path, "rb") as pdf_file:
-        pdf_reader = PyPDF2.PdfReader(pdf_file)
-        for page_num in range(len(pdf_reader.pages)):
-            page = pdf_reader.pages[page_num]
-            text += page.extract_text()
-    return text
 
 def run_client(args):
     print('\n')

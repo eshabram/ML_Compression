@@ -1,37 +1,24 @@
 #%%
 import pandas as pd
 import numpy as np
-import os
 import sys
-import time
 import threading
 import nltk
 nltk.download('punkt')
 from nltk.tokenize import word_tokenize
 from huffman import *
+from utils import *
 import pdb
 
 df = pd.read_csv('data/unigram_freq.csv')
 # df.replace(to_replace='a', value='\n', inplace=True)
 
-def loading_animation():
-    cursor_anim = '|/-\\'
-    i = 0
-    while not animation_event.is_set():
-        cursor = cursor_anim[i % len(cursor_anim)]
-        with threadlocker:
-            sys.stdout.write(f"\rWorking {cursor}    ")
-        sys.stdout.flush()
-        time.sleep(0.1)
-        i += 1
-    print('\n')
-
-
 bits = [8, 16, 24, 32]
 bit_code = ['00', '01', '10', '11']
 threadlocker = threading.Lock()
 animation_event = threading.Event()
-animation_thread = threading.Thread(target=loading_animation)
+animation_thread = threading.Thread(target=loading_animation, \
+                                    args=(animation_event, threadlocker))
     
 def encode_number(num, bits, bit_code):
     # used in building the column 'keys' with custom scheme
@@ -371,7 +358,6 @@ def get_word(idx):
     # this method simply return the word given an index
     return df['word'][idx]
 
-    
 
 # assign key values with custom scheme, based on the index of a word.
 # Index = rank. Keys are shorter for more common words.
