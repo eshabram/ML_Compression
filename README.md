@@ -8,7 +8,23 @@ SMC works similarly to Huffman coding, in that the goal is to assign the
 smallest codes to the most common entries, but rather than assigning codes based 
 on character, SMC uses a small database of words ranked by commonality. This 
 method is beneficial because it removes the need for translation keys to be sent
-with the messages.
+with the messages. The use of hashmaps for both encoding and decoding makes this
+implementation quite fast. In general, the philosophy behind this compression 
+algorith is *space-time tradeoff*, but even with the added word commonality 
+dataset, this project isn't more than a few megabytes in size. That is an 
+increasingly small price to pay in the Age of Information. 
+
+Below is a figure showing compression ratios for different compression algorithms
+for smaller messages such as text data. The human conversation dataset referenced 
+at the bottom of this readme was used in running tests for the collecting of this
+data. The plot illustrates SMC effectiveness for small messaging. Note that below 
+the dashed line represents a negative compression rate, meaning that the messages
+actually get larger.
+![Compression Comparison](figures/Compression_Comparison.png)
+
+The very right of the plot represents the bit equivalent to 280 characters, which
+was puposely chosen for its familiarity, being that 280 was the character limit 
+for twitter posts from 2017 until recently. Before 2017 it was half that length.
 
 ---
 ### Using the client and server with compression:
@@ -79,7 +95,7 @@ That's it. If you'd like to verify that the data is the size specified, you can
 run wireshark and capture one of the TCP packets and find the "payload" or "data", 
 or you can compress a file using SMC.py. 
 Have fun!
-![Alt text](figures/wireshark_payload.png)
+![wireshark](figures/wireshark_payload.png)
 
 Data for word frequencey retrieved from:
 https://www.kaggle.com/datasets/rtatman/english-word-frequency?resource=download

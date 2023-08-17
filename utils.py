@@ -6,6 +6,7 @@ import sys
 import time
 
 
+
 def loading_animation(animation_event, threadlocker):
     cursor_anim = '|/-\\'
     i = 0
