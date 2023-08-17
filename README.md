@@ -29,6 +29,21 @@ for twitter posts from 2017 until recently. Before 2017 it was half that length.
 Above that range would be fairly uncommon for sms type messaging. 
 
 ---
+### Dependencies:
+
+The best way to ensure that dependencies are met is to use Anaconda. This will 
+ensure that most of the tools needed are there. To do this, navigate to the 
+Anaconda website located [Anaconda](https://www.anaconda.com/download "HERE") 
+and download the operating specific version. The only dependency outside of this
+would be nltk for word tokenization and various other text processing. Run this 
+command to install:
+
+```
+conda install nltk
+```
+
+That should do it.
+
 ### Using the client and server with compression:
 
 Open two linux termial and run client.py on one, and server.py on the other like this:
