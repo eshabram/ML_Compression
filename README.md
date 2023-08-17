@@ -14,8 +14,8 @@ algorith is *space-time tradeoff*, but even with the added word commonality
 dataset, this project isn't more than a few megabytes in size. That is an 
 increasingly small price to pay in the Age of Information. 
 
-Below is a figure showing compression ratios for different compression algorithms
-for smaller messages such as text data. The human conversation dataset referenced 
+Below is a figure showing compression ratios for different algorithms in small message 
+scenarios such as sms. The human conversation dataset referenced 
 at the bottom of this readme was used in running tests for the collecting of this
 data. The plot illustrates SMC effectiveness for small messaging. Note that below 
 the dashed line represents a negative compression rate, meaning that the messages
@@ -26,6 +26,7 @@ actually get larger.
 The very right of the plot represents the bit equivalent to 280 characters, which
 was puposely chosen for its familiarity, being that 280 was the character limit 
 for twitter posts from 2017 until recently. Before 2017 it was half that length.
+Above that range would be fairly uncommon for sms type messaging. 
 
 ---
 ### Using the client and server with compression:
