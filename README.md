@@ -18,7 +18,7 @@ Below is a figure showing compression ratios for different algorithms in small m
 scenarios such as sms. The human conversation dataset referenced 
 at the bottom of this readme was used in running tests for the collecting of this
 data. The plot illustrates SMC effectiveness for small messaging. Note that below 
-the dashed line represents a negative compression rate, meaning that the messages
+the dashed line represents a negative compression ratio, meaning that the messages
 actually get larger.
 
 ![Compression Comparison](figures/Compression_Comparison.png)
