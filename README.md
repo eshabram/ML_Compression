@@ -33,7 +33,7 @@ Above that range would be fairly uncommon for sms type messaging.
 
 The best way to ensure that dependencies are met is to use Anaconda. This will 
 ensure that most of the tools needed are there. To do this, navigate to the 
-Anaconda website located [Anaconda](https://www.anaconda.com/download "HERE") 
+Anaconda website located [HERE](https://www.anaconda.com/download "HERE") 
 and download the operating specific version. The only dependency outside of this
 would be nltk for word tokenization and various other text processing. Run this 
 command to install:
