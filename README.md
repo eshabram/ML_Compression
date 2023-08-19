@@ -1,11 +1,11 @@
 # SMC Compression:
 
-Small Message Coding (SMC) is a lossless compression algorithm designed 
+Short Message Coding (SMC) is a lossless compression algorithm designed 
 specifically for messaging with real-time compression in mind. Conventional compression 
 algorithms typically lack the ability to compress short text due to the inclusion
 of translation keys and reliance on repetative characters.
 SMC works similarly to Huffman coding, in that the goal is to assign the 
-smallest codes to the most common entries, but rather than assigning codes based 
+shortest codes to the most common entries, but rather than assigning codes based 
 on character, SMC uses a small database of words ranked by commonality. This 
 method is beneficial because it removes the need for translation keys to be sent
 with the messages. The use of hashmaps for both encoding and decoding makes this
@@ -14,10 +14,10 @@ algorith is *space-time tradeoff*, but even with the added word commonality
 dataset, this project isn't more than a few megabytes in size. That is an 
 increasingly small price to pay in the Age of Information. 
 
-Below is a figure showing compression ratios for different algorithms in small message 
-scenarios such as sms. The human conversation dataset referenced 
+Below is a figure showing compression ratios for different algorithms in short message 
+scenarios such as sms. The human conversation dataset referenced
 at the bottom of this readme was used in running tests for the collecting of this
-data. The plot illustrates SMC effectiveness for small messaging. Note that below 
+data. The plot illustrates SMC effectiveness for short messages. Note that below 
 the dashed line represents a negative compression ratio, meaning that the messages
 actually get larger.
 
@@ -59,7 +59,7 @@ python3 server.py -v
 ```
 
 This will will send a message using the lossless SMC compression designed for 
-use with small text messaging in mind. 
+use with short text messaging in mind. 
 
 ```
 python3 client.py -f <file name>
@@ -90,7 +90,7 @@ The -d flag specifies --decompression, which makes sure that the file is a .smc
 file unless the --force argument is used. This command will generate a .uncompressed
 version of the .smc file with the same name and location.
 
-NOTE: Since SMC was designed for small messages, it is not ideal for large file
+NOTE: Since SMC was designed for short messages, it is not ideal for large file
 compression, but with the includion of a simple huffman scheme, it does okay against
 other compression algorithms such as gzip. In general, gzip beats the heck out of
 SMC for file compression, but there is plenty of room for optimization, and perhaps 
