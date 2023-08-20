@@ -72,7 +72,9 @@ def run_plot(args):
     # Set x-axis limits to match the edge of the data
     plt.xlim(min_text_size, max_text_size)
     # Display legend
-    plt.legend(loc='lower right')
+    plt.legend(loc='lower right').get_frame().set_alpha(0.5)
+    
+    plt.savefig('data/Compression_Comparison_Transparent.png', dpi=300, transparent=True)
     
     # Show the plot
     plt.show()

@@ -203,7 +203,7 @@ def decode_sequence(sequence, args):
         longest_key_len = max(map(len, decoding_dict.keys()))
     else:
         idx += 1
-    while idx < len(sequence) and len(sequence) - idx >= 8:
+    while idx < len(sequence):
         num_str = ''
         if sequence[idx] == '1':
             idx += 1
