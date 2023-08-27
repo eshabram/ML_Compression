@@ -77,7 +77,10 @@ def run_plot(args):
     plt.ylabel('Mean Ratios')
     plt.ylim(-1, 1)  # Adjust these limits based on your data range
     plt.axhline(y=0, color='gray', linestyle='dashed')
-    
+
+    # Add a vertical line at x-coordinate 1280
+    plt.axvline(x=1280, color='red', linestyle='dashed', label='SMS 160 Character Limit')
+
     # Get the minimum and maximum text size values for x-axis limits
     min_text_size = df_plot['Text Size (bits)'].min()
     max_text_size = df_plot['Text Size (bits)'].max()
