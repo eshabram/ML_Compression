@@ -126,7 +126,8 @@ def binary_encode(message, args):
     binary_encode = '1'
     huffman = ''
     spaces = ''
-    
+    # if args.verbose:
+    #     print(tokens)
     # locate the index of a given word, and add it to the scheme
     for i, token in enumerate(tokens):
         # append SPACE bits

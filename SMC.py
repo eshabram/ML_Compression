@@ -59,7 +59,7 @@ def decompress(args):
 if __name__ == "__main__":
     # Parse arguments
     parser = argparse.ArgumentParser(description="")
-    
+
     parser.add_argument("filepath", type=str, help="File path to be compressed.")
     parser.add_argument("-v", "--verbose", \
                         action="store_true", help="Enable verbose mode.")
